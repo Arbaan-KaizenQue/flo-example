@@ -150,10 +150,61 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "5:4772584187665375050",
+      "lastPropertyId": "8:9102377035586061759",
+      "name": "SleepLogEntity",
+      "properties": [
+        {
+          "id": "1:7889855775795630233",
+          "name": "obxId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1071816156276710208",
+          "name": "id",
+          "indexId": "5:42139223971153403",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:3199360289125071350",
+          "name": "date",
+          "type": 10
+        },
+        {
+          "id": "4:8871916620643002965",
+          "name": "hours",
+          "type": 8
+        },
+        {
+          "id": "5:4666408866703159507",
+          "name": "quality",
+          "type": 9
+        },
+        {
+          "id": "6:8877762957016799704",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "7:5976703563924167208",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "8:9102377035586061759",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "4:9156708421514262618",
-  "lastIndexId": "4:7574370826086626639",
+  "lastEntityId": "5:4772584187665375050",
+  "lastIndexId": "5:42139223971153403",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

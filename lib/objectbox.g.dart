@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'data/local/entities/cycle_log_entity.dart';
+import 'data/local/entities/sleep_log_entity.dart';
 import 'data/local/entities/symptom_entry_entity.dart';
 import 'data/local/entities/water_log_entity.dart';
 
@@ -192,6 +193,65 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(5, 4772584187665375050),
+    name: 'SleepLogEntity',
+    lastPropertyId: const obx_int.IdUid(8, 9102377035586061759),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7889855775795630233),
+        name: 'obxId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1071816156276710208),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(5, 42139223971153403),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3199360289125071350),
+        name: 'date',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 8871916620643002965),
+        name: 'hours',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 4666408866703159507),
+        name: 'quality',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8877762957016799704),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 5976703563924167208),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 9102377035586061759),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -232,8 +292,8 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(4, 9156708421514262618),
-    lastIndexId: const obx_int.IdUid(4, 7574370826086626639),
+    lastEntityId: const obx_int.IdUid(5, 4772584187665375050),
+    lastIndexId: const obx_int.IdUid(5, 42139223971153403),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [7403333810084077382],
@@ -470,6 +530,79 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    SleepLogEntity: obx_int.EntityDefinition<SleepLogEntity>(
+      model: _entities[3],
+      toOneRelations: (SleepLogEntity object) => [],
+      toManyRelations: (SleepLogEntity object) => {},
+      getId: (SleepLogEntity object) => object.obxId,
+      setId: (SleepLogEntity object, int id) {
+        object.obxId = id;
+      },
+      objectToFB: (SleepLogEntity object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        final qualityOffset = fbb.writeString(object.quality);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.obxId);
+        fbb.addOffset(1, idOffset);
+        fbb.addInt64(2, object.date.millisecondsSinceEpoch);
+        fbb.addFloat64(3, object.hours);
+        fbb.addOffset(4, qualityOffset);
+        fbb.addInt64(5, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(6, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(7, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.obxId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final obxIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final idParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final dateParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+        );
+        final hoursParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final qualityParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          false,
+        );
+        final object = SleepLogEntity(
+          obxId: obxIdParam,
+          id: idParam,
+          date: dateParam,
+          hours: hoursParam,
+          quality: qualityParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -596,5 +729,48 @@ class WaterLogEntity_ {
   /// See [WaterLogEntity.deleted].
   static final deleted = obx.QueryBooleanProperty<WaterLogEntity>(
     _entities[2].properties[7],
+  );
+}
+
+/// [SleepLogEntity] entity fields to define ObjectBox queries.
+class SleepLogEntity_ {
+  /// See [SleepLogEntity.obxId].
+  static final obxId = obx.QueryIntegerProperty<SleepLogEntity>(
+    _entities[3].properties[0],
+  );
+
+  /// See [SleepLogEntity.id].
+  static final id = obx.QueryStringProperty<SleepLogEntity>(
+    _entities[3].properties[1],
+  );
+
+  /// See [SleepLogEntity.date].
+  static final date = obx.QueryDateProperty<SleepLogEntity>(
+    _entities[3].properties[2],
+  );
+
+  /// See [SleepLogEntity.hours].
+  static final hours = obx.QueryDoubleProperty<SleepLogEntity>(
+    _entities[3].properties[3],
+  );
+
+  /// See [SleepLogEntity.quality].
+  static final quality = obx.QueryStringProperty<SleepLogEntity>(
+    _entities[3].properties[4],
+  );
+
+  /// See [SleepLogEntity.createdAt].
+  static final createdAt = obx.QueryDateProperty<SleepLogEntity>(
+    _entities[3].properties[5],
+  );
+
+  /// See [SleepLogEntity.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<SleepLogEntity>(
+    _entities[3].properties[6],
+  );
+
+  /// See [SleepLogEntity.deleted].
+  static final deleted = obx.QueryBooleanProperty<SleepLogEntity>(
+    _entities[3].properties[7],
   );
 }

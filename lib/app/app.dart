@@ -6,12 +6,14 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/cycle_log/cycle_log_bloc.dart';
 import '../bloc/onboarding/onboarding_bloc.dart';
 import '../bloc/settings/settings_bloc.dart';
+import '../bloc/sleep/sleep_bloc.dart';
 import '../bloc/symptom/symptom_bloc.dart';
 import '../bloc/sync/sync_bloc.dart';
 import '../bloc/water/water_bloc.dart';
 import '../core/route/app_router.dart';
 import '../core/theme/app_theme.dart';
 import '../data/local/datasources/local_cycle_log_datasource.dart';
+import '../data/local/datasources/local_sleep_datasource.dart';
 import '../data/local/datasources/local_symptom_datasource.dart';
 import '../data/local/datasources/local_water_datasource.dart';
 import '../data/local/objectbox_store.dart';
@@ -20,6 +22,7 @@ import '../data/repositories/cycle_log_repository.dart';
 import '../data/repositories/drive_repository.dart';
 import '../data/repositories/onboarding_repository.dart';
 import '../data/repositories/settings_repository.dart';
+import '../data/repositories/sleep_repository.dart';
 import '../data/repositories/symptom_repository.dart';
 import '../data/repositories/water_repository.dart';
 import '../data/services/auth_service.dart';
@@ -43,6 +46,7 @@ class Application extends StatelessWidget {
     final cycleLogDataSource = LocalCycleLogDataSource(store: store);
     final symptomDataSource = LocalSymptomDataSource(store: store);
     final waterDataSource = LocalWaterDataSource(store: store);
+    final sleepDataSource = LocalSleepDataSource(store: store);
 
     final authRepository = AuthRepositoryImpl(
       authService: authService,
@@ -60,6 +64,7 @@ class Application extends StatelessWidget {
     final symptomRepository =
         SymptomRepositoryImpl(local: symptomDataSource);
     final waterRepository = WaterRepositoryImpl(local: waterDataSource);
+    final sleepRepository = SleepRepositoryImpl(local: sleepDataSource);
 
     return MultiBlocProvider(
       providers: [
@@ -90,6 +95,11 @@ class Application extends StatelessWidget {
           lazy: false,
           create: (_) => WaterBloc(repository: waterRepository)
             ..add(const WatchWater()),
+        ),
+        BlocProvider<SleepBloc>(
+          lazy: false,
+          create: (_) => SleepBloc(repository: sleepRepository)
+            ..add(const WatchSleep()),
         ),
         BlocProvider<SettingsBloc>(
           create: (_) => SettingsBloc(

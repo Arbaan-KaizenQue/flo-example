@@ -5,15 +5,18 @@ import 'package:intl/intl.dart';
 
 import '../../../bloc/cycle_log/cycle_log_bloc.dart';
 import '../../../bloc/onboarding/onboarding_bloc.dart';
+import '../../../bloc/sleep/sleep_bloc.dart';
 import '../../../bloc/symptom/symptom_bloc.dart';
 import '../../../bloc/water/water_bloc.dart';
 import '../../../core/route/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/cycle_log.dart';
+import '../../../data/models/sleep_log.dart';
 import '../../../data/models/symptom_entry.dart';
 import '../../../data/models/water_log.dart';
 import '../../widgets/cycle_calendar.dart';
 import '../../widgets/daily_metric_chip.dart';
+import '../../widgets/sleep_log_sheet.dart';
 import '../../widgets/symptom_picker_sheet.dart';
 import '../../widgets/sync_status_indicator.dart';
 import '../../widgets/water_log_sheet.dart';
@@ -65,6 +68,8 @@ class _DashboardPageState extends State<DashboardPage> {
               builder: (context, symptomState) {
                 return BlocBuilder<WaterBloc, WaterState>(
                   builder: (context, waterState) {
+                    return BlocBuilder<SleepBloc, SleepState>(
+                      builder: (context, sleepState) {
                     return BlocBuilder<OnboardingBloc, OnboardingState>(
                       builder: (context, onboardState) {
                         final draft = onboardState.draft;
@@ -73,6 +78,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             symptomState.entryForDay(_selectedDay);
                         final waterLog =
                             waterState.logForDay(_selectedDay);
+                        final sleepLog =
+                            sleepState.logForDay(_selectedDay);
 
                         return ListView(
                           padding:
@@ -92,6 +99,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               logForDay: logForDay,
                               symptomEntry: symptomEntry,
                               waterLog: waterLog,
+                              sleepLog: sleepLog,
                               onLogPeriod: () => _openLogForm(_selectedDay),
                               onLogSymptoms: () => showSymptomPickerSheet(
                                 context,
@@ -104,6 +112,11 @@ class _DashboardPageState extends State<DashboardPage> {
                                 date: _selectedDay,
                                 current: waterLog,
                               ),
+                              onLogSleep: () => showSleepLogSheet(
+                                context,
+                                date: _selectedDay,
+                                current: sleepLog,
+                              ),
                             ),
                             const SizedBox(height: 20),
                             if (draft.cycleLength.isNotEmpty ||
@@ -113,6 +126,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           ],
                         );
                       },
+                    );
+                    },
                     );
                   },
                 );
@@ -231,18 +246,22 @@ class _SelectedDayCard extends StatelessWidget {
     required this.logForDay,
     required this.symptomEntry,
     required this.waterLog,
+    required this.sleepLog,
     required this.onLogPeriod,
     required this.onLogSymptoms,
     required this.onLogWater,
+    required this.onLogSleep,
   });
 
   final DateTime selectedDay;
   final CycleLog? logForDay;
   final SymptomEntry? symptomEntry;
   final WaterLog? waterLog;
+  final SleepLog? sleepLog;
   final VoidCallback onLogPeriod;
   final VoidCallback onLogSymptoms;
   final VoidCallback onLogWater;
+  final VoidCallback onLogSleep;
 
   @override
   Widget build(BuildContext context) {
@@ -255,6 +274,9 @@ class _SelectedDayCard extends StatelessWidget {
         ? '0 / 2.0L'
         : '${(waterLog!.amountMl / 1000).toStringAsFixed(1)}'
             ' / ${(waterLog!.goalMl / 1000).toStringAsFixed(1)}L';
+    final sleepValue = sleepLog == null
+        ? '—'
+        : '${sleepLog!.hours.toStringAsFixed(1)}h • ${sleepLog!.quality}';
 
     return Card(
       margin: EdgeInsets.zero,
@@ -325,8 +347,7 @@ class _SelectedDayCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 16),
-            // Quick-log row (water / sleep / weight / notes land here as
-            // each feature ships).
+            // Quick-log row (weight / notes land here as each feature ships).
             Row(
               children: [
                 Expanded(
@@ -335,6 +356,15 @@ class _SelectedDayCard extends StatelessWidget {
                     label: 'Water',
                     value: waterValue,
                     onTap: onLogWater,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DailyMetricChip(
+                    icon: Icons.bedtime_outlined,
+                    label: 'Sleep',
+                    value: sleepValue,
+                    onTap: onLogSleep,
                   ),
                 ),
               ],
