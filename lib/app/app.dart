@@ -6,6 +6,7 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/cycle_log/cycle_log_bloc.dart';
 import '../bloc/note/note_bloc.dart';
 import '../bloc/onboarding/onboarding_bloc.dart';
+import '../bloc/prediction/prediction_bloc.dart';
 import '../bloc/settings/settings_bloc.dart';
 import '../bloc/sleep/sleep_bloc.dart';
 import '../bloc/symptom/symptom_bloc.dart';
@@ -115,6 +116,12 @@ class Application extends StatelessWidget {
           lazy: false,
           create: (_) => WeightBloc(repository: weightRepository)
             ..add(const WatchWeight()),
+        ),
+        BlocProvider<PredictionBloc>(
+          lazy: false,
+          create: (_) => PredictionBloc(
+            cycleLogRepository: cycleLogRepository,
+          )..add(const WatchCycleHistory()),
         ),
         BlocProvider<NoteBloc>(
           lazy: false,

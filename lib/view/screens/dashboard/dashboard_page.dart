@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../bloc/cycle_log/cycle_log_bloc.dart';
 import '../../../bloc/note/note_bloc.dart';
 import '../../../bloc/onboarding/onboarding_bloc.dart';
+import '../../../bloc/prediction/prediction_bloc.dart';
 import '../../../bloc/sleep/sleep_bloc.dart';
 import '../../../bloc/symptom/symptom_bloc.dart';
 import '../../../bloc/water/water_bloc.dart';
@@ -20,6 +21,7 @@ import '../../../data/models/water_log.dart';
 import '../../../data/models/weight_log.dart';
 import '../../widgets/cycle_calendar.dart';
 import '../../widgets/daily_metric_chip.dart';
+import '../../widgets/prediction_card.dart';
 import '../../widgets/sleep_log_sheet.dart';
 import '../../widgets/symptom_picker_sheet.dart';
 import '../../widgets/sync_status_indicator.dart';
@@ -108,12 +110,20 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             _Greeting(),
                             const SizedBox(height: 16),
-                            CycleCalendar(
-                              focusedDay: _focusedDay,
-                              selectedDay: _selectedDay,
-                              onDaySelected: _onDaySelected,
-                              periodDays: logState.periodDays,
+                            BlocBuilder<PredictionBloc, PredictionState>(
+                              builder: (context, predictionState) {
+                                return CycleCalendar(
+                                  focusedDay: _focusedDay,
+                                  selectedDay: _selectedDay,
+                                  onDaySelected: _onDaySelected,
+                                  periodDays: logState.periodDays,
+                                  predictedPeriodDays:
+                                      predictionState.predictedPeriodDays,
+                                );
+                              },
                             ),
+                            const SizedBox(height: 12),
+                            const PredictionCard(),
                             const SizedBox(height: 12),
                             _SelectedDayCard(
                               selectedDay: _selectedDay,

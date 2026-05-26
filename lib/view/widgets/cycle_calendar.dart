@@ -5,12 +5,10 @@ import '../../core/theme/app_theme.dart';
 
 /// [CycleCalendar] — monthly calendar styled for the cycle-tracking app.
 ///
-/// Feature 01 wires up the visual shell only:
-///   - month grid with swipe-to-change-month
-///   - today highlighted with a pink ring
-///   - selected day painted solid pink
-///   - day-cell builder hook ready for period / ovulation dots
-///     (will receive real data from Features 02 / 09 / 10)
+/// Marker conventions:
+///   solid pink dot       → logged period day        (Feature 02)
+///   outlined pink dot    → predicted period day     (Feature 09)
+///   solid teal dot       → ovulation / fertile day  (Feature 10)
 class CycleCalendar extends StatelessWidget {
   const CycleCalendar({
     super.key,
@@ -18,23 +16,15 @@ class CycleCalendar extends StatelessWidget {
     required this.selectedDay,
     required this.onDaySelected,
     this.periodDays = const {},
+    this.predictedPeriodDays = const {},
     this.ovulationDays = const {},
   });
 
-  /// The month currently visible.
   final DateTime focusedDay;
-
-  /// The currently selected day inside [focusedDay]'s month.
   final DateTime selectedDay;
-
-  /// Fired when the user taps a day.
   final void Function(DateTime selected, DateTime focused) onDaySelected;
-
-  /// Days that should be marked as period days (Feature 02 will populate).
   final Set<DateTime> periodDays;
-
-  /// Days that should be marked as predicted ovulation days
-  /// (Features 09 / 10 will populate).
+  final Set<DateTime> predictedPeriodDays;
   final Set<DateTime> ovulationDays;
 
   bool _sameDay(DateTime a, DateTime b) =>
@@ -98,8 +88,12 @@ class CycleCalendar extends StatelessWidget {
           calendarBuilders: CalendarBuilders<void>(
             markerBuilder: (context, day, _) {
               final isPeriod = _containsDay(periodDays, day);
+              final isPredicted =
+                  !isPeriod && _containsDay(predictedPeriodDays, day);
               final isOvulation = _containsDay(ovulationDays, day);
-              if (!isPeriod && !isOvulation) return const SizedBox.shrink();
+              if (!isPeriod && !isPredicted && !isOvulation) {
+                return const SizedBox.shrink();
+              }
               return Positioned(
                 bottom: 4,
                 child: Row(
@@ -107,7 +101,9 @@ class CycleCalendar extends StatelessWidget {
                   children: [
                     if (isPeriod)
                       const _Dot(color: AppTheme.pink),
-                    if (isPeriod && isOvulation) const SizedBox(width: 3),
+                    if (isPredicted) const _RingDot(color: AppTheme.pink),
+                    if ((isPeriod || isPredicted) && isOvulation)
+                      const SizedBox(width: 3),
                     if (isOvulation)
                       const _Dot(color: AppTheme.ovulationTeal),
                   ],
@@ -132,6 +128,24 @@ class _Dot extends StatelessWidget {
       width: 5,
       height: 5,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+}
+
+class _RingDot extends StatelessWidget {
+  const _RingDot({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: color, width: 1.2),
+      ),
     );
   }
 }
