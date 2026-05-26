@@ -119,6 +119,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                   periodDays: logState.periodDays,
                                   predictedPeriodDays:
                                       predictionState.predictedPeriodDays,
+                                  ovulationDays:
+                                      predictionState.fertileDays,
                                 );
                               },
                             ),

@@ -72,7 +72,9 @@ class PredictionCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
                     _Pill(
                       label: state.dayOfCycle == null
@@ -80,11 +82,24 @@ class PredictionCard extends StatelessWidget {
                           : 'Day ${state.dayOfCycle}',
                       icon: Icons.timelapse,
                     ),
-                    const SizedBox(width: 8),
                     _Pill(
                       label: 'Avg ${state.averageCycleLength}d',
                       icon: Icons.repeat,
                     ),
+                    if (state.isFertileToday)
+                      const _Pill(
+                        label: 'Fertile today',
+                        icon: Icons.spa_outlined,
+                        accent: AppTheme.ovulationTeal,
+                      )
+                    else if (state.fertileWindowStart != null)
+                      _Pill(
+                        label:
+                            'Fertile ${DateFormat.MMMd().format(state.fertileWindowStart!.toLocal())}'
+                            '–${DateFormat.MMMd().format(state.fertileWindowEnd!.toLocal())}',
+                        icon: Icons.spa_outlined,
+                        accent: AppTheme.ovulationTeal,
+                      ),
                   ],
                 ),
               ],
@@ -133,29 +148,34 @@ class _EmptyCard extends StatelessWidget {
 }
 
 class _Pill extends StatelessWidget {
-  const _Pill({required this.label, required this.icon});
+  const _Pill({required this.label, required this.icon, this.accent});
 
   final String label;
   final IconData icon;
+  final Color? accent;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final bg = accent == null
+        ? scheme.primaryContainer
+        : accent!.withValues(alpha: 0.18);
+    final fg = accent ?? scheme.onPrimaryContainer;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: scheme.primaryContainer,
+        color: bg,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: scheme.onPrimaryContainer),
+          Icon(icon, size: 14, color: fg),
           const SizedBox(width: 4),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.onPrimaryContainer,
+                  color: fg,
                   fontWeight: FontWeight.w600,
                 ),
           ),

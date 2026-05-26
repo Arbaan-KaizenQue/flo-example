@@ -94,6 +94,14 @@ class PredictionBloc extends Bloc<PredictionEvent, PredictionState> {
     final daysUntilNext = nextStart.difference(today).inDays;
     final dayOfCycle = today.difference(lastStart).inDays + 1;
 
+    // Feature 10 — Fertility window:
+    //  Ovulation ≈ next period start − [lutealPhaseLength] days.
+    //  Fertile window = ovulation − 5 days .. ovulation + 1 day (6-day span).
+    final ovulation =
+        nextStart.subtract(Duration(days: lutealPhaseLength));
+    final fertileStart = ovulation.subtract(const Duration(days: 5));
+    final fertileEnd = ovulation.add(const Duration(days: 1));
+
     return PredictionState(
       isLoading: false,
       averageCycleLength: avg,
@@ -102,6 +110,9 @@ class PredictionBloc extends Bloc<PredictionEvent, PredictionState> {
       nextPredictedPeriodEnd: nextEnd,
       daysUntilNextPeriod: daysUntilNext,
       dayOfCycle: dayOfCycle > 0 ? dayOfCycle : null,
+      ovulationDay: ovulation,
+      fertileWindowStart: fertileStart,
+      fertileWindowEnd: fertileEnd,
     );
   }
 
