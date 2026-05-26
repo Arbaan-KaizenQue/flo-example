@@ -19,10 +19,18 @@ import '../models/water_log.dart';
 class GeminiService {
   GeminiService();
 
-  static const String _modelName = 'gemini-1.5-flash-latest';
+  /// Default model. Override from .env with `GEMINI_MODEL=...` if Google
+  /// ever EOLs this one. Try `gemini-2.5-flash` for newer hardware,
+  /// `gemini-1.5-flash` if your project is on the legacy quota.
+  static const String _defaultModel = 'gemini-2.0-flash';
 
   String get apiKey => dotenv.maybeGet('GEMINI_API_KEY')?.trim() ?? '';
   bool get hasApiKey => apiKey.isNotEmpty;
+
+  String get modelName {
+    final override = dotenv.maybeGet('GEMINI_MODEL')?.trim();
+    return (override == null || override.isEmpty) ? _defaultModel : override;
+  }
 
   Future<JsonResponse> generateRecommendations({
     required List<CycleLog> cycles,
@@ -40,7 +48,7 @@ class GeminiService {
 
     try {
       final model = GenerativeModel(
-        model: _modelName,
+        model: modelName,
         apiKey: apiKey,
         generationConfig: GenerationConfig(
           responseMimeType: 'application/json',
