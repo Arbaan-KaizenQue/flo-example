@@ -53,10 +53,56 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:4679046369151296177",
+      "lastPropertyId": "7:4715779083784320778",
+      "name": "SymptomEntryEntity",
+      "properties": [
+        {
+          "id": "1:6287958418667232930",
+          "name": "obxId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3691499290067923591",
+          "name": "id",
+          "indexId": "3:6856431955205446257",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:6570018547338673887",
+          "name": "date",
+          "type": 10
+        },
+        {
+          "id": "4:2081977377100754740",
+          "name": "symptomsCsv",
+          "type": 9
+        },
+        {
+          "id": "5:5847153320917379624",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "6:9169733186059025548",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "7:4715779083784320778",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:664034958412546370",
-  "lastIndexId": "2:7547695987029961102",
+  "lastEntityId": "3:4679046369151296177",
+  "lastIndexId": "3:6856431955205446257",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

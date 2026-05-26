@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'data/local/entities/cycle_log_entity.dart';
+import 'data/local/entities/symptom_entry_entity.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -78,6 +79,59 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(3, 4679046369151296177),
+    name: 'SymptomEntryEntity',
+    lastPropertyId: const obx_int.IdUid(7, 4715779083784320778),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 6287958418667232930),
+        name: 'obxId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 3691499290067923591),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(3, 6856431955205446257),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6570018547338673887),
+        name: 'date',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2081977377100754740),
+        name: 'symptomsCsv',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 5847153320917379624),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 9169733186059025548),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 4715779083784320778),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -118,8 +172,8 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(2, 664034958412546370),
-    lastIndexId: const obx_int.IdUid(2, 7547695987029961102),
+    lastEntityId: const obx_int.IdUid(3, 4679046369151296177),
+    lastIndexId: const obx_int.IdUid(3, 6856431955205446257),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [7403333810084077382],
@@ -216,6 +270,71 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    SymptomEntryEntity: obx_int.EntityDefinition<SymptomEntryEntity>(
+      model: _entities[1],
+      toOneRelations: (SymptomEntryEntity object) => [],
+      toManyRelations: (SymptomEntryEntity object) => {},
+      getId: (SymptomEntryEntity object) => object.obxId,
+      setId: (SymptomEntryEntity object, int id) {
+        object.obxId = id;
+      },
+      objectToFB: (SymptomEntryEntity object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        final symptomsCsvOffset = fbb.writeString(object.symptomsCsv);
+        fbb.startTable(8);
+        fbb.addInt64(0, object.obxId);
+        fbb.addOffset(1, idOffset);
+        fbb.addInt64(2, object.date.millisecondsSinceEpoch);
+        fbb.addOffset(3, symptomsCsvOffset);
+        fbb.addInt64(4, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(5, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(6, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.obxId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final obxIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final idParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final dateParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+        );
+        final symptomsCsvParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final object = SymptomEntryEntity(
+          obxId: obxIdParam,
+          id: idParam,
+          date: dateParam,
+          symptomsCsv: symptomsCsvParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -261,5 +380,43 @@ class CycleLogEntity_ {
   /// See [CycleLogEntity.deleted].
   static final deleted = obx.QueryBooleanProperty<CycleLogEntity>(
     _entities[0].properties[7],
+  );
+}
+
+/// [SymptomEntryEntity] entity fields to define ObjectBox queries.
+class SymptomEntryEntity_ {
+  /// See [SymptomEntryEntity.obxId].
+  static final obxId = obx.QueryIntegerProperty<SymptomEntryEntity>(
+    _entities[1].properties[0],
+  );
+
+  /// See [SymptomEntryEntity.id].
+  static final id = obx.QueryStringProperty<SymptomEntryEntity>(
+    _entities[1].properties[1],
+  );
+
+  /// See [SymptomEntryEntity.date].
+  static final date = obx.QueryDateProperty<SymptomEntryEntity>(
+    _entities[1].properties[2],
+  );
+
+  /// See [SymptomEntryEntity.symptomsCsv].
+  static final symptomsCsv = obx.QueryStringProperty<SymptomEntryEntity>(
+    _entities[1].properties[3],
+  );
+
+  /// See [SymptomEntryEntity.createdAt].
+  static final createdAt = obx.QueryDateProperty<SymptomEntryEntity>(
+    _entities[1].properties[4],
+  );
+
+  /// See [SymptomEntryEntity.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<SymptomEntryEntity>(
+    _entities[1].properties[5],
+  );
+
+  /// See [SymptomEntryEntity.deleted].
+  static final deleted = obx.QueryBooleanProperty<SymptomEntryEntity>(
+    _entities[1].properties[6],
   );
 }

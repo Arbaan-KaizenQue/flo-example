@@ -5,10 +5,13 @@ import 'package:intl/intl.dart';
 
 import '../../../bloc/cycle_log/cycle_log_bloc.dart';
 import '../../../bloc/onboarding/onboarding_bloc.dart';
+import '../../../bloc/symptom/symptom_bloc.dart';
 import '../../../core/route/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/cycle_log.dart';
+import '../../../data/models/symptom_entry.dart';
 import '../../widgets/cycle_calendar.dart';
+import '../../widgets/symptom_picker_sheet.dart';
 import '../../widgets/sync_status_indicator.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -45,6 +48,14 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  void _openSymptomSheet(DateTime day, List<String> initial) {
+    showSymptomPickerSheet(
+      context,
+      date: day,
+      initialSelection: initial,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,33 +66,45 @@ class _DashboardPageState extends State<DashboardPage> {
       body: SafeArea(
         child: BlocBuilder<CycleLogBloc, CycleLogState>(
           builder: (context, logState) {
-            return BlocBuilder<OnboardingBloc, OnboardingState>(
-              builder: (context, onboardState) {
-                final draft = onboardState.draft;
-                final logForDay = logState.logForDay(_selectedDay);
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  children: [
-                    _Greeting(),
-                    const SizedBox(height: 16),
-                    CycleCalendar(
-                      focusedDay: _focusedDay,
-                      selectedDay: _selectedDay,
-                      onDaySelected: _onDaySelected,
-                      periodDays: logState.periodDays,
-                    ),
-                    const SizedBox(height: 12),
-                    _SelectedDayCard(
-                      selectedDay: _selectedDay,
-                      logForDay: logForDay,
-                      onLogPeriod: () => _openLogForm(_selectedDay),
-                    ),
-                    const SizedBox(height: 20),
-                    if (draft.cycleLength.isNotEmpty ||
-                        draft.symptoms.isNotEmpty ||
-                        draft.goals.isNotEmpty)
-                      ..._summaryCards(context, draft),
-                  ],
+            return BlocBuilder<SymptomBloc, SymptomState>(
+              builder: (context, symptomState) {
+                return BlocBuilder<OnboardingBloc, OnboardingState>(
+                  builder: (context, onboardState) {
+                    final draft = onboardState.draft;
+                    final logForDay = logState.logForDay(_selectedDay);
+                    final symptomEntry =
+                        symptomState.entryForDay(_selectedDay);
+
+                    return ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      children: [
+                        _Greeting(),
+                        const SizedBox(height: 16),
+                        CycleCalendar(
+                          focusedDay: _focusedDay,
+                          selectedDay: _selectedDay,
+                          onDaySelected: _onDaySelected,
+                          periodDays: logState.periodDays,
+                        ),
+                        const SizedBox(height: 12),
+                        _SelectedDayCard(
+                          selectedDay: _selectedDay,
+                          logForDay: logForDay,
+                          symptomEntry: symptomEntry,
+                          onLogPeriod: () => _openLogForm(_selectedDay),
+                          onLogSymptoms: () => _openSymptomSheet(
+                            _selectedDay,
+                            symptomEntry?.symptoms ?? const [],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        if (draft.cycleLength.isNotEmpty ||
+                            draft.symptoms.isNotEmpty ||
+                            draft.goals.isNotEmpty)
+                          ..._summaryCards(context, draft),
+                      ],
+                    );
+                  },
                 );
               },
             );
@@ -196,17 +219,24 @@ class _SelectedDayCard extends StatelessWidget {
   const _SelectedDayCard({
     required this.selectedDay,
     required this.logForDay,
+    required this.symptomEntry,
     required this.onLogPeriod,
+    required this.onLogSymptoms,
   });
 
   final DateTime selectedDay;
   final CycleLog? logForDay;
+  final SymptomEntry? symptomEntry;
   final VoidCallback onLogPeriod;
+  final VoidCallback onLogSymptoms;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final hasPeriod = logForDay != null;
+    final hasSymptoms =
+        symptomEntry != null && symptomEntry!.symptoms.isNotEmpty;
+
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -228,7 +258,9 @@ class _SelectedDayCard extends StatelessWidget {
                     hasPeriod
                         ? Icons.water_drop
                         : Icons.calendar_today_outlined,
-                    color: hasPeriod ? AppTheme.pink : scheme.onPrimaryContainer,
+                    color: hasPeriod
+                        ? AppTheme.pink
+                        : scheme.onPrimaryContainer,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -244,25 +276,62 @@ class _SelectedDayCard extends StatelessWidget {
                       Text(
                         hasPeriod
                             ? 'Period • ${logForDay!.flow[0].toUpperCase()}${logForDay!.flow.substring(1)} flow'
-                            : 'No logs for this day yet.',
-                        style:
-                            Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: scheme.onSurfaceVariant,
-                                ),
+                            : 'No period logged for this day.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.pink,
+            if (hasSymptoms) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: symptomEntry!.symptoms
+                    .map((s) => Chip(
+                          label: Text(
+                            s,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ))
+                    .toList(),
               ),
-              icon: Icon(hasPeriod ? Icons.edit_outlined : Icons.add),
-              label: Text(hasPeriod ? 'Edit period' : 'Log period'),
-              onPressed: onLogPeriod,
+            ],
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.pink,
+                    ),
+                    icon: Icon(
+                      hasPeriod ? Icons.edit_outlined : Icons.add,
+                    ),
+                    label: Text(hasPeriod ? 'Edit period' : 'Log period'),
+                    onPressed: onLogPeriod,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    icon: Icon(
+                      hasSymptoms ? Icons.edit_outlined : Icons.add,
+                    ),
+                    label:
+                        Text(hasSymptoms ? 'Edit symptoms' : 'Log symptoms'),
+                    onPressed: onLogSymptoms,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

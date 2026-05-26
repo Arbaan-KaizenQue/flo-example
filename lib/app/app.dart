@@ -6,16 +6,19 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/cycle_log/cycle_log_bloc.dart';
 import '../bloc/onboarding/onboarding_bloc.dart';
 import '../bloc/settings/settings_bloc.dart';
+import '../bloc/symptom/symptom_bloc.dart';
 import '../bloc/sync/sync_bloc.dart';
 import '../core/route/app_router.dart';
 import '../core/theme/app_theme.dart';
 import '../data/local/datasources/local_cycle_log_datasource.dart';
+import '../data/local/datasources/local_symptom_datasource.dart';
 import '../data/local/objectbox_store.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/cycle_log_repository.dart';
 import '../data/repositories/drive_repository.dart';
 import '../data/repositories/onboarding_repository.dart';
 import '../data/repositories/settings_repository.dart';
+import '../data/repositories/symptom_repository.dart';
 import '../data/services/auth_service.dart';
 import '../data/services/drive_service.dart';
 
@@ -41,6 +44,7 @@ class Application extends StatelessWidget {
 
     // Datasources
     final cycleLogDataSource = LocalCycleLogDataSource(store: store);
+    final symptomDataSource = LocalSymptomDataSource(store: store);
 
     // Repositories
     final authRepository = AuthRepositoryImpl(
@@ -56,6 +60,8 @@ class Application extends StatelessWidget {
     final onboardingRepository = OnboardingRepositoryImpl(prefs: prefs);
     final cycleLogRepository =
         CycleLogRepositoryImpl(local: cycleLogDataSource);
+    final symptomRepository =
+        SymptomRepositoryImpl(local: symptomDataSource);
 
     return MultiBlocProvider(
       providers: [
@@ -76,6 +82,11 @@ class Application extends StatelessWidget {
           lazy: false,
           create: (_) => CycleLogBloc(repository: cycleLogRepository)
             ..add(const WatchCycleLogs()),
+        ),
+        BlocProvider<SymptomBloc>(
+          lazy: false,
+          create: (_) => SymptomBloc(repository: symptomRepository)
+            ..add(const WatchSymptoms()),
         ),
         BlocProvider<SettingsBloc>(
           create: (_) => SettingsBloc(
