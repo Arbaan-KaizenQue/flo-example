@@ -6,6 +6,7 @@ class RecommendationState extends Equatable {
     this.error = '',
     this.message = '',
     this.recommendations = const [],
+    this.wellnessScore,
     this.hasApiKey = false,
     this.lastUpdatedAt,
   });
@@ -14,6 +15,10 @@ class RecommendationState extends Equatable {
   final String error;
   final String message;
   final List<Recommendation> recommendations;
+
+  /// 0–100, or null if AI declined to score.
+  final int? wellnessScore;
+
   final bool hasApiKey;
   final DateTime? lastUpdatedAt;
 
@@ -22,6 +27,7 @@ class RecommendationState extends Equatable {
     String? error,
     String? message,
     List<Recommendation>? recommendations,
+    int? wellnessScore,
     bool? hasApiKey,
     DateTime? lastUpdatedAt,
   }) =>
@@ -30,6 +36,7 @@ class RecommendationState extends Equatable {
         error: error ?? this.error,
         message: message ?? this.message,
         recommendations: recommendations ?? this.recommendations,
+        wellnessScore: wellnessScore ?? this.wellnessScore,
         hasApiKey: hasApiKey ?? this.hasApiKey,
         lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
       );
@@ -40,6 +47,7 @@ class RecommendationState extends Equatable {
         error,
         message,
         recommendations,
+        wellnessScore,
         hasApiKey,
         lastUpdatedAt,
       ];

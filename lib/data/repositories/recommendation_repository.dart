@@ -9,6 +9,8 @@ import '../services/gemini_service.dart';
 abstract class RecommendationRepository {
   bool get hasApiKey;
 
+  /// Returns a [JsonResponse] whose `data` is an [AIInsightsBundle] on
+  /// success.
   Future<JsonResponse> generate({
     required List<CycleLog> cycles,
     required List<SymptomEntry> symptoms,
@@ -34,7 +36,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     required List<WaterLog> water,
     required OnboardingAnswers profile,
   }) =>
-      geminiService.generateRecommendations(
+      geminiService.generateInsights(
         cycles: cycles,
         symptoms: symptoms,
         sleep: sleep,

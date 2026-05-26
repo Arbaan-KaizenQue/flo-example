@@ -20,16 +20,26 @@ class _RecomputeRequested extends RecommendationEvent {
   const _RecomputeRequested();
 }
 
+class _StoredInsightsLoaded extends RecommendationEvent {
+  const _StoredInsightsLoaded({required this.insights});
+
+  final List<Recommendation> insights;
+
+  @override
+  List<Object?> get props => [insights];
+}
+
 class _GenerationStarted extends RecommendationEvent {
   const _GenerationStarted();
 }
 
 class _GenerationFinished extends RecommendationEvent {
-  const _GenerationFinished({this.recommendations, this.error});
+  const _GenerationFinished({this.insights, this.wellnessScore, this.error});
 
-  final List<Recommendation>? recommendations;
+  final List<Recommendation>? insights;
+  final int? wellnessScore;
   final String? error;
 
   @override
-  List<Object?> get props => [recommendations, error];
+  List<Object?> get props => [insights, wellnessScore, error];
 }

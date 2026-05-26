@@ -298,10 +298,66 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "8:5733886383974565744",
+      "lastPropertyId": "9:2347317857052365695",
+      "name": "AIInsightEntity",
+      "properties": [
+        {
+          "id": "1:3406429113507296759",
+          "name": "obxId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6053695639442668413",
+          "name": "id",
+          "indexId": "8:627069223178570192",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:6123557847084140337",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "4:7762575493128300689",
+          "name": "body",
+          "type": 9
+        },
+        {
+          "id": "5:6122264206353393326",
+          "name": "typeIndex",
+          "type": 6
+        },
+        {
+          "id": "6:6388749323477502974",
+          "name": "severityIndex",
+          "type": 6
+        },
+        {
+          "id": "7:8215614776967633516",
+          "name": "confidence",
+          "type": 8
+        },
+        {
+          "id": "8:3025024917897790779",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "9:2347317857052365695",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "7:8642650576209567553",
-  "lastIndexId": "7:5174038022626929532",
+  "lastEntityId": "8:5733886383974565744",
+  "lastIndexId": "8:627069223178570192",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

@@ -16,6 +16,7 @@ import '../bloc/water/water_bloc.dart';
 import '../bloc/weight/weight_bloc.dart';
 import '../core/route/app_router.dart';
 import '../core/theme/app_theme.dart';
+import '../data/local/datasources/local_ai_insight_datasource.dart';
 import '../data/local/datasources/local_cycle_log_datasource.dart';
 import '../data/local/datasources/local_note_datasource.dart';
 import '../data/local/datasources/local_sleep_datasource.dart';
@@ -23,6 +24,7 @@ import '../data/local/datasources/local_symptom_datasource.dart';
 import '../data/local/datasources/local_water_datasource.dart';
 import '../data/local/datasources/local_weight_datasource.dart';
 import '../data/local/objectbox_store.dart';
+import '../data/repositories/ai_insight_repository.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/cycle_log_repository.dart';
 import '../data/repositories/drive_repository.dart';
@@ -59,6 +61,7 @@ class Application extends StatelessWidget {
     final sleepDataSource = LocalSleepDataSource(store: store);
     final weightDataSource = LocalWeightDataSource(store: store);
     final noteDataSource = LocalNoteDataSource(store: store);
+    final aiInsightDataSource = LocalAIInsightDataSource(store: store);
 
     final authRepository = AuthRepositoryImpl(
       authService: authService,
@@ -82,6 +85,8 @@ class Application extends StatelessWidget {
     final recommendationRepository = RecommendationRepositoryImpl(
       geminiService: GeminiService(),
     );
+    final aiInsightRepository =
+        AIInsightRepositoryImpl(local: aiInsightDataSource);
 
     return MultiBlocProvider(
       providers: [
@@ -133,6 +138,7 @@ class Application extends StatelessWidget {
           lazy: false,
           create: (_) => RecommendationBloc(
             recommendationRepository: recommendationRepository,
+            aiInsightRepository: aiInsightRepository,
             cycleLogRepository: cycleLogRepository,
             symptomRepository: symptomRepository,
             sleepRepository: sleepRepository,

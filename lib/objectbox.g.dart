@@ -14,6 +14,7 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import 'data/local/entities/ai_insight_entity.dart';
 import 'data/local/entities/cycle_log_entity.dart';
 import 'data/local/entities/note_entity.dart';
 import 'data/local/entities/sleep_log_entity.dart';
@@ -366,6 +367,71 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(8, 5733886383974565744),
+    name: 'AIInsightEntity',
+    lastPropertyId: const obx_int.IdUid(9, 2347317857052365695),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3406429113507296759),
+        name: 'obxId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 6053695639442668413),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(8, 627069223178570192),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6123557847084140337),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 7762575493128300689),
+        name: 'body',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 6122264206353393326),
+        name: 'typeIndex',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 6388749323477502974),
+        name: 'severityIndex',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 8215614776967633516),
+        name: 'confidence',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3025024917897790779),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 2347317857052365695),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -406,8 +472,8 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(7, 8642650576209567553),
-    lastIndexId: const obx_int.IdUid(7, 5174038022626929532),
+    lastEntityId: const obx_int.IdUid(8, 5733886383974565744),
+    lastIndexId: const obx_int.IdUid(8, 627069223178570192),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [7403333810084077382],
@@ -855,6 +921,91 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    AIInsightEntity: obx_int.EntityDefinition<AIInsightEntity>(
+      model: _entities[6],
+      toOneRelations: (AIInsightEntity object) => [],
+      toManyRelations: (AIInsightEntity object) => {},
+      getId: (AIInsightEntity object) => object.obxId,
+      setId: (AIInsightEntity object, int id) {
+        object.obxId = id;
+      },
+      objectToFB: (AIInsightEntity object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        final titleOffset = fbb.writeString(object.title);
+        final bodyOffset = fbb.writeString(object.body);
+        fbb.startTable(10);
+        fbb.addInt64(0, object.obxId);
+        fbb.addOffset(1, idOffset);
+        fbb.addOffset(2, titleOffset);
+        fbb.addOffset(3, bodyOffset);
+        fbb.addInt64(4, object.typeIndex);
+        fbb.addInt64(5, object.severityIndex);
+        fbb.addFloat64(6, object.confidence);
+        fbb.addInt64(7, object.createdAt.millisecondsSinceEpoch);
+        fbb.addBool(8, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.obxId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final obxIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final idParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final titleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final bodyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final typeIndexParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          0,
+        );
+        final severityIndexParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          0,
+        );
+        final confidenceParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          0,
+        );
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          false,
+        );
+        final object = AIInsightEntity(
+          obxId: obxIdParam,
+          id: idParam,
+          title: titleParam,
+          body: bodyParam,
+          typeIndex: typeIndexParam,
+          severityIndex: severityIndexParam,
+          confidence: confidenceParam,
+          createdAt: createdAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1105,5 +1256,53 @@ class NoteEntity_ {
   /// See [NoteEntity.deleted].
   static final deleted = obx.QueryBooleanProperty<NoteEntity>(
     _entities[5].properties[7],
+  );
+}
+
+/// [AIInsightEntity] entity fields to define ObjectBox queries.
+class AIInsightEntity_ {
+  /// See [AIInsightEntity.obxId].
+  static final obxId = obx.QueryIntegerProperty<AIInsightEntity>(
+    _entities[6].properties[0],
+  );
+
+  /// See [AIInsightEntity.id].
+  static final id = obx.QueryStringProperty<AIInsightEntity>(
+    _entities[6].properties[1],
+  );
+
+  /// See [AIInsightEntity.title].
+  static final title = obx.QueryStringProperty<AIInsightEntity>(
+    _entities[6].properties[2],
+  );
+
+  /// See [AIInsightEntity.body].
+  static final body = obx.QueryStringProperty<AIInsightEntity>(
+    _entities[6].properties[3],
+  );
+
+  /// See [AIInsightEntity.typeIndex].
+  static final typeIndex = obx.QueryIntegerProperty<AIInsightEntity>(
+    _entities[6].properties[4],
+  );
+
+  /// See [AIInsightEntity.severityIndex].
+  static final severityIndex = obx.QueryIntegerProperty<AIInsightEntity>(
+    _entities[6].properties[5],
+  );
+
+  /// See [AIInsightEntity.confidence].
+  static final confidence = obx.QueryDoubleProperty<AIInsightEntity>(
+    _entities[6].properties[6],
+  );
+
+  /// See [AIInsightEntity.createdAt].
+  static final createdAt = obx.QueryDateProperty<AIInsightEntity>(
+    _entities[6].properties[7],
+  );
+
+  /// See [AIInsightEntity.deleted].
+  static final deleted = obx.QueryBooleanProperty<AIInsightEntity>(
+    _entities[6].properties[8],
   );
 }

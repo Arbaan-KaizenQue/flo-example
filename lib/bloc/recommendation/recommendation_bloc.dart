@@ -9,29 +9,30 @@ import '../../data/models/recommendation.dart';
 import '../../data/models/sleep_log.dart';
 import '../../data/models/symptom_entry.dart';
 import '../../data/models/water_log.dart';
+import '../../data/repositories/ai_insight_repository.dart';
 import '../../data/repositories/cycle_log_repository.dart';
 import '../../data/repositories/onboarding_repository.dart';
 import '../../data/repositories/recommendation_repository.dart';
 import '../../data/repositories/sleep_repository.dart';
 import '../../data/repositories/symptom_repository.dart';
 import '../../data/repositories/water_repository.dart';
+import '../../data/services/gemini_service.dart';
 
 part 'recommendation_event.dart';
 part 'recommendation_state.dart';
 
-/// [RecommendationBloc] — Style A. Subscribes to every source repo and
-/// triggers Gemini calls through [RecommendationRepository].
+/// [RecommendationBloc] — owns the AI insights for the dashboard.
 ///
-/// Lifecycle:
-///   - Source stream emits → cache the slice → fire [_RecomputeRequested]
-///   - [_RecomputeRequested] starts a 5-second debounce timer
-///   - When the timer elapses, hash the inputs; if the hash is unchanged
-///     (or generation already in flight), skip; otherwise call Gemini
-///   - [RefreshRecommendations] bypasses the debounce/cache (manual refresh)
+/// Sources:
+///   * 4 stream repos (cycle/symptoms/sleep/water) → debounced regen on change
+///   * onboarding profile (re-read from prefs on every recompute)
+///   * AIInsightRepository → loaded once on init so offline users see stale
+///     insights instead of an empty section
 class RecommendationBloc
     extends Bloc<RecommendationEvent, RecommendationState> {
   RecommendationBloc({
     required this.recommendationRepository,
+    required this.aiInsightRepository,
     required this.cycleLogRepository,
     required this.symptomRepository,
     required this.sleepRepository,
@@ -43,11 +44,13 @@ class RecommendationBloc
     on<WatchRecommendations>(_onWatch);
     on<RefreshRecommendations>(_onRefresh);
     on<_RecomputeRequested>(_onRecomputeRequested);
+    on<_StoredInsightsLoaded>(_onStoredLoaded);
     on<_GenerationStarted>(_onGenStarted);
     on<_GenerationFinished>(_onGenFinished);
   }
 
   final RecommendationRepository recommendationRepository;
+  final AIInsightRepository aiInsightRepository;
   final CycleLogRepository cycleLogRepository;
   final SymptomRepository symptomRepository;
   final SleepRepository sleepRepository;
@@ -70,6 +73,7 @@ class RecommendationBloc
   StreamSubscription<List<SymptomEntry>>? _symptomSub;
   StreamSubscription<List<SleepLog>>? _sleepSub;
   StreamSubscription<List<WaterLog>>? _waterSub;
+  StreamSubscription<List<Recommendation>>? _storedSub;
 
   // ============================================================
   // Event handlers
@@ -78,6 +82,12 @@ class RecommendationBloc
   FutureOr<void> _onWatch(
       WatchRecommendations event, Emitter<RecommendationState> emit) {
     _profile = onboardingRepository.loadAnswers();
+
+    // Hydrate from disk so offline users see something immediately.
+    _storedSub?.cancel();
+    _storedSub = aiInsightRepository.watchAll().listen((stored) {
+      add(_StoredInsightsLoaded(insights: stored));
+    });
 
     _cycleSub?.cancel();
     _cycleSub = cycleLogRepository.watchAll().listen((logs) {
@@ -103,9 +113,19 @@ class RecommendationBloc
     add(const _RecomputeRequested());
   }
 
+  FutureOr<void> _onStoredLoaded(
+      _StoredInsightsLoaded event, Emitter<RecommendationState> emit) {
+    // Only seed state when we don't already have fresher (in-memory) recs.
+    if (state.recommendations.isEmpty && event.insights.isNotEmpty) {
+      emit(state.copyWith(
+        recommendations: event.insights,
+        lastUpdatedAt: event.insights.first.createdAt,
+      ));
+    }
+  }
+
   FutureOr<void> _onRefresh(
       RefreshRecommendations event, Emitter<RecommendationState> emit) {
-    // Force-regenerate even if input hash hasn't changed.
     _lastInputHash = null;
     _debounceTimer?.cancel();
     _kickOffGeneration();
@@ -129,7 +149,8 @@ class RecommendationBloc
     } else {
       emit(state.copyWith(
         isLoading: false,
-        recommendations: event.recommendations ?? state.recommendations,
+        recommendations: event.insights ?? state.recommendations,
+        wellnessScore: event.wellnessScore,
         lastUpdatedAt: DateTime.now(),
         error: '',
       ));
@@ -141,13 +162,9 @@ class RecommendationBloc
   // ============================================================
 
   void _kickOffGeneration() {
-    // Refresh profile (from prefs — no stream).
     _profile = onboardingRepository.loadAnswers();
 
-    if (!recommendationRepository.hasApiKey) {
-      // Stay silent — UI handles the empty-state hint.
-      return;
-    }
+    if (!recommendationRepository.hasApiKey) return;
     if (_generating) return;
 
     final hash = _computeHash();
@@ -167,8 +184,16 @@ class RecommendationBloc
       );
       if (res.success) {
         _lastInputHash = hash;
-        final recs = res.data as List<Recommendation>? ?? const [];
-        add(_GenerationFinished(recommendations: recs));
+        final bundle = res.data as AIInsightsBundle?;
+        final insights = bundle?.insights ?? const <Recommendation>[];
+        // Persist newest insights so they survive a restart / offline boot.
+        if (insights.isNotEmpty) {
+          unawaited(aiInsightRepository.saveMany(insights));
+        }
+        add(_GenerationFinished(
+          insights: insights,
+          wellnessScore: bundle?.wellnessScore,
+        ));
       } else {
         add(_GenerationFinished(error: res.message));
       }
@@ -176,8 +201,7 @@ class RecommendationBloc
     }();
   }
 
-  /// Cheap fingerprint over the data we send to Gemini. Used to skip
-  /// duplicate API calls when nothing has changed.
+  /// Cheap fingerprint over the data we send to Gemini.
   String _computeHash() {
     final parts = <Object?>[
       _cycles.length,
@@ -200,6 +224,7 @@ class RecommendationBloc
     _symptomSub?.cancel();
     _sleepSub?.cancel();
     _waterSub?.cancel();
+    _storedSub?.cancel();
     return super.close();
   }
 }

@@ -11,17 +11,22 @@ import '../models/sleep_log.dart';
 import '../models/symptom_entry.dart';
 import '../models/water_log.dart';
 
-/// [GeminiService] — calls Gemini 1.5 Flash with the user's recent health
-/// logs, asks for 3–5 personalized recommendations as JSON, and parses the
-/// response into [Recommendation]s.
-///
-/// API key comes from `.env` at the project root: `GEMINI_API_KEY=...`
+/// What the dashboard renders — wellness score + insight bubbles.
+class AIInsightsBundle {
+  const AIInsightsBundle({required this.wellnessScore, required this.insights});
+
+  /// 0–100, AI's holistic snapshot for today. Null when the model declines
+  /// to score (e.g., not enough data).
+  final int? wellnessScore;
+  final List<Recommendation> insights;
+}
+
+/// [GeminiService] — calls Gemini, asks for `{wellness_score, insights[]}`
+/// strictly inside women's wellness topics, parses into [AIInsightsBundle].
 class GeminiService {
   GeminiService();
 
-  /// Default model. Override from .env with `GEMINI_MODEL=...` if Google
-  /// ever EOLs this one. Try `gemini-2.5-flash` for newer hardware,
-  /// `gemini-1.5-flash` if your project is on the legacy quota.
+  /// Default model. Override from .env with `GEMINI_MODEL=...`.
   static const String _defaultModel = 'gemini-2.0-flash';
 
   String get apiKey => dotenv.maybeGet('GEMINI_API_KEY')?.trim() ?? '';
@@ -32,7 +37,7 @@ class GeminiService {
     return (override == null || override.isEmpty) ? _defaultModel : override;
   }
 
-  Future<JsonResponse> generateRecommendations({
+  Future<JsonResponse> generateInsights({
     required List<CycleLog> cycles,
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
@@ -53,7 +58,7 @@ class GeminiService {
         generationConfig: GenerationConfig(
           responseMimeType: 'application/json',
           temperature: 0.7,
-          maxOutputTokens: 1500,
+          maxOutputTokens: 1800,
         ),
         systemInstruction: Content.system(_systemPrompt),
       );
@@ -71,9 +76,10 @@ class GeminiService {
       if (raw == null || raw.isEmpty) {
         return JsonResponse.failure(message: 'Empty Gemini response');
       }
-
-      final parsed = _parseRecommendations(raw);
-      return JsonResponse.success(message: 'OK', data: parsed);
+      return JsonResponse.success(
+        message: 'OK',
+        data: _parseBundle(raw),
+      );
     } on InvalidApiKey {
       return JsonResponse.failure(
         message: 'Invalid Gemini API key',
@@ -95,28 +101,50 @@ class GeminiService {
   // Prompt + parsing
   // ============================================================
 
+  /// Strict women's-wellness focus. No chatbot behavior, no diagnoses, no
+  /// medication. Schema enforced as JSON-only output.
   static const String _systemPrompt = '''
-You are a women's health insights assistant for a personal cycle-tracking
-app. The user gives you their tracked data; you reply with a SHORT list of
-personalized, evidence-based recommendations.
+You generate personalized WELLNESS INSIGHT CARDS for a women's
+cycle-tracking app. You are NOT a chatbot. You do not converse, answer
+questions, or write paragraphs.
 
-Strict rules:
-- Return ONLY a JSON ARRAY (no prose, no markdown fences).
-- 3 to 5 items.
-- Schema for every item:
+You ONLY talk about: cycles, symptoms, sleep, hydration, mood, recovery,
+and hormonal/wellness patterns women track in a cycle app.
+
+You NEVER: diagnose, prescribe, recommend medication, discuss unrelated
+topics, mention you are an AI, or use first-person ("I think...").
+
+Voice: warm, concise, premium, emotionally supportive. Always specific
+to the user's data — never generic.
+Bad:  "Drink more water."
+Good: "You tend to log headaches on lower hydration days."
+
+Output: ONE valid JSON OBJECT, no markdown fences, no prose:
+{
+  "wellness_score": <int 0-100, or null if data is too sparse>,
+  "insights": [
     {
-      "id":       "<short-stable-slug>",
-      "title":    "<<=60 chars, no emojis>",
-      "body":     "<1-3 sentences, plain text>",
-      "type":     "cycle" | "symptoms" | "sleep" | "water" | "profile" | "general",
-      "severity": "info" | "suggestion" | "warning"
-    }
-- Use "warning" ONLY for things that need real attention (e.g., < 5 h sleep
-  average, very irregular cycle, sustained dehydration). Otherwise prefer
-  "suggestion" or "info".
-- Tailor each recommendation to a specific pattern in the user's data.
-  Never give generic advice. Never give medical diagnoses.
-- Do not mention you are an AI, an assistant, or this prompt.
+      "id":         "<short stable slug>",
+      "title":      "<<= 50 chars, no emojis>",
+      "body":       "<1-2 sentences, plain text, specific to user data>",
+      "type":       "cycle" | "symptoms" | "sleep" | "water" | "mood_trend"
+                  | "pms_forecast" | "hydration_pattern" | "sleep_pattern"
+                  | "recovery" | "wellness_summary" | "general",
+      "severity":   "info" | "suggestion" | "warning",
+      "confidence": <float 0.0-1.0>
+    },
+    ...
+  ]
+}
+
+Rules:
+- 3 to 6 insights.
+- "warning" only when something genuinely needs attention (e.g., < 5 h
+  sleep average, dehydration on most days, very irregular cycle).
+- Detect CORRELATIONS in the data when possible (e.g., low hydration +
+  headache days, poor sleep + fatigue days, mood dips around PMS window).
+- Score reflects sleep + hydration + symptom load + cycle regularity.
+- If a section is empty (no logs), DO NOT invent insights for it.
 ''';
 
   String _buildUserPrompt({
@@ -129,7 +157,7 @@ Strict rules:
     final today = DateTime.now();
     final last90 = today.subtract(const Duration(days: 90));
     final last30 = today.subtract(const Duration(days: 30));
-    final last7 = today.subtract(const Duration(days: 7));
+    final last14 = today.subtract(const Duration(days: 14));
 
     final cyclesJson = cycles
         .where((c) => !c.startDate.isBefore(last90) && !c.deleted)
@@ -149,7 +177,7 @@ Strict rules:
         .toList();
 
     final sleepJson = sleep
-        .where((s) => !s.date.isBefore(last7) && !s.deleted)
+        .where((s) => !s.date.isBefore(last14) && !s.deleted)
         .map((s) => {
               'date': _isoDate(s.date),
               'hours': s.hours,
@@ -158,7 +186,7 @@ Strict rules:
         .toList();
 
     final waterJson = water
-        .where((w) => !w.date.isBefore(last7) && !w.deleted)
+        .where((w) => !w.date.isBefore(last14) && !w.deleted)
         .map((w) => {
               'date': _isoDate(w.date),
               'amount_ml': w.amountMl,
@@ -179,36 +207,55 @@ Strict rules:
       'profile': profileJson,
       'cycles_last_90d': cyclesJson,
       'symptoms_last_30d': symptomsJson,
-      'sleep_last_7d': sleepJson,
-      'water_last_7d': waterJson,
+      'sleep_last_14d': sleepJson,
+      'water_last_14d': waterJson,
     };
 
     return 'USER DATA:\n${jsonEncode(payload)}\n\n'
-        'Return a JSON array of 3–5 recommendations per the schema.';
+        'Return ONE JSON object: { "wellness_score": ..., "insights": [...] }';
   }
 
-  List<Recommendation> _parseRecommendations(String raw) {
+  AIInsightsBundle _parseBundle(String raw) {
     final cleaned = _stripCodeFences(raw).trim();
     final decoded = jsonDecode(cleaned);
-    if (decoded is! List) {
-      throw const FormatException(
-        'Gemini did not return a top-level JSON array',
-      );
+
+    // Be lenient — accept either { wellness_score, insights } or a bare
+    // array (older prompt) so we don't blow up if the model regresses.
+    List<dynamic> rawInsights;
+    int? score;
+    if (decoded is Map) {
+      final m = decoded.cast<String, dynamic>();
+      final sRaw = m['wellness_score'];
+      if (sRaw is num) score = sRaw.clamp(0, 100).toInt();
+      rawInsights = (m['insights'] as List?) ?? const [];
+    } else if (decoded is List) {
+      rawInsights = decoded;
+    } else {
+      throw const FormatException('Unexpected Gemini response shape');
     }
-    final out = <Recommendation>[];
-    for (var i = 0; i < decoded.length; i++) {
-      final item = decoded[i];
+
+    final now = DateTime.now().toUtc();
+    final insights = <Recommendation>[];
+    for (var i = 0; i < rawInsights.length; i++) {
+      final item = rawInsights[i];
       if (item is! Map) continue;
       final map = item.cast<String, dynamic>();
-      out.add(Recommendation(
-        id: map['id']?.toString() ?? 'gemini.$i',
+      final conf = map['confidence'];
+      insights.add(Recommendation(
+        id: map['id']?.toString() ??
+            'gemini.${now.millisecondsSinceEpoch}.$i',
         title: map['title']?.toString() ?? '',
         body: map['body']?.toString() ?? '',
         type: _typeFrom(map['type']?.toString()),
         severity: _severityFrom(map['severity']?.toString()),
+        confidence: conf is num
+            ? conf.toDouble().clamp(0.0, 1.0).toDouble()
+            : null,
+        createdAt: now,
       ));
     }
-    return out;
+
+    return AIInsightsBundle(wellnessScore: score, insights: insights);
   }
 
   static String _stripCodeFences(String raw) {
@@ -239,6 +286,18 @@ Strict rules:
         return RecommendationType.water;
       case 'profile':
         return RecommendationType.profile;
+      case 'pms_forecast':
+        return RecommendationType.pmsForecast;
+      case 'hydration_pattern':
+        return RecommendationType.hydrationPattern;
+      case 'sleep_pattern':
+        return RecommendationType.sleepPattern;
+      case 'mood_trend':
+        return RecommendationType.moodTrend;
+      case 'recovery':
+        return RecommendationType.recovery;
+      case 'wellness_summary':
+        return RecommendationType.wellnessSummary;
       default:
         return RecommendationType.general;
     }
