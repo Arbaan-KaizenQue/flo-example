@@ -1,0 +1,66 @@
+name: sync_app
+description: Local-first Flutter app with optional Google Drive sync
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_bloc: ^8.1.6
+  bloc: ^8.1.4
+  equatable: ^2.0.5
+
+  # Routing
+  go_router: ^14.6.0
+
+  # Networking
+  dio: ^5.7.0
+
+  # Local Storage
+  # Note: doc/dependencies.md pinned ^4.0.3, but objectbox_generator 4.x
+  # is incompatible with current analyzer — bumped to 5.x for codegen to work.
+  objectbox: ^5.0.0
+  objectbox_flutter_libs: ^5.0.0
+
+  # Google Auth + Drive
+  google_sign_in: ^6.2.2
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.6.0
+  extension_google_sign_in_as_googleapis_auth: ^2.0.12
+
+  # Storage
+  shared_preferences: ^2.3.3
+  flutter_secure_storage: ^9.2.2
+  path_provider: ^2.1.5
+  path: ^1.9.0
+
+  # Utilities
+  uuid: ^4.5.1
+  connectivity_plus: ^6.1.0
+  intl: ^0.19.0
+  logger: ^2.5.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.13
+  objectbox_generator: ^5.0.0
+  mocktail: ^1.0.4
+  bloc_test: ^9.1.7
+
+# source_gen 3.x is pinned transitively but breaks against analyzer 8.x
+# (objectbox_generator codegen fails). Force 4.x until upstream catches up.
+dependency_overrides:
+  source_gen: ^4.0.0
+
+flutter:
+  uses-material-design: true
