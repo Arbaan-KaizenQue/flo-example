@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'data/local/entities/cycle_log_entity.dart';
+import 'data/local/entities/note_entity.dart';
 import 'data/local/entities/sleep_log_entity.dart';
 import 'data/local/entities/symptom_entry_entity.dart';
 import 'data/local/entities/water_log_entity.dart';
@@ -306,6 +307,65 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(7, 8642650576209567553),
+    name: 'NoteEntity',
+    lastPropertyId: const obx_int.IdUid(8, 3632905169174314429),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 219135414885400620),
+        name: 'obxId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 3236898207943607247),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(7, 5174038022626929532),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6252986394653385990),
+        name: 'date',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 6188051593468261074),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 5068941362106222141),
+        name: 'body',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 7102056401521779372),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 1826644210972551930),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3632905169174314429),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -346,8 +406,8 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(6, 6051000448384892218),
-    lastIndexId: const obx_int.IdUid(6, 8016496066330480978),
+    lastEntityId: const obx_int.IdUid(7, 8642650576209567553),
+    lastIndexId: const obx_int.IdUid(7, 5174038022626929532),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [7403333810084077382],
@@ -724,6 +784,77 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    NoteEntity: obx_int.EntityDefinition<NoteEntity>(
+      model: _entities[5],
+      toOneRelations: (NoteEntity object) => [],
+      toManyRelations: (NoteEntity object) => {},
+      getId: (NoteEntity object) => object.obxId,
+      setId: (NoteEntity object, int id) {
+        object.obxId = id;
+      },
+      objectToFB: (NoteEntity object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        final titleOffset = fbb.writeString(object.title);
+        final bodyOffset = fbb.writeString(object.body);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.obxId);
+        fbb.addOffset(1, idOffset);
+        fbb.addInt64(2, object.date.millisecondsSinceEpoch);
+        fbb.addOffset(3, titleOffset);
+        fbb.addOffset(4, bodyOffset);
+        fbb.addInt64(5, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(6, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(7, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.obxId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final obxIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final idParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final dateParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+        );
+        final titleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final bodyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          false,
+        );
+        final object = NoteEntity(
+          obxId: obxIdParam,
+          id: idParam,
+          date: dateParam,
+          title: titleParam,
+          body: bodyParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -931,5 +1062,48 @@ class WeightLogEntity_ {
   /// See [WeightLogEntity.deleted].
   static final deleted = obx.QueryBooleanProperty<WeightLogEntity>(
     _entities[4].properties[6],
+  );
+}
+
+/// [NoteEntity] entity fields to define ObjectBox queries.
+class NoteEntity_ {
+  /// See [NoteEntity.obxId].
+  static final obxId = obx.QueryIntegerProperty<NoteEntity>(
+    _entities[5].properties[0],
+  );
+
+  /// See [NoteEntity.id].
+  static final id = obx.QueryStringProperty<NoteEntity>(
+    _entities[5].properties[1],
+  );
+
+  /// See [NoteEntity.date].
+  static final date = obx.QueryDateProperty<NoteEntity>(
+    _entities[5].properties[2],
+  );
+
+  /// See [NoteEntity.title].
+  static final title = obx.QueryStringProperty<NoteEntity>(
+    _entities[5].properties[3],
+  );
+
+  /// See [NoteEntity.body].
+  static final body = obx.QueryStringProperty<NoteEntity>(
+    _entities[5].properties[4],
+  );
+
+  /// See [NoteEntity.createdAt].
+  static final createdAt = obx.QueryDateProperty<NoteEntity>(
+    _entities[5].properties[5],
+  );
+
+  /// See [NoteEntity.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<NoteEntity>(
+    _entities[5].properties[6],
+  );
+
+  /// See [NoteEntity.deleted].
+  static final deleted = obx.QueryBooleanProperty<NoteEntity>(
+    _entities[5].properties[7],
   );
 }

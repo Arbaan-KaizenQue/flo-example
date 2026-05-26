@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/cycle_log/cycle_log_bloc.dart';
+import '../bloc/note/note_bloc.dart';
 import '../bloc/onboarding/onboarding_bloc.dart';
 import '../bloc/settings/settings_bloc.dart';
 import '../bloc/sleep/sleep_bloc.dart';
@@ -14,6 +15,7 @@ import '../bloc/weight/weight_bloc.dart';
 import '../core/route/app_router.dart';
 import '../core/theme/app_theme.dart';
 import '../data/local/datasources/local_cycle_log_datasource.dart';
+import '../data/local/datasources/local_note_datasource.dart';
 import '../data/local/datasources/local_sleep_datasource.dart';
 import '../data/local/datasources/local_symptom_datasource.dart';
 import '../data/local/datasources/local_water_datasource.dart';
@@ -22,6 +24,7 @@ import '../data/local/objectbox_store.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/cycle_log_repository.dart';
 import '../data/repositories/drive_repository.dart';
+import '../data/repositories/note_repository.dart';
 import '../data/repositories/onboarding_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/sleep_repository.dart';
@@ -51,6 +54,7 @@ class Application extends StatelessWidget {
     final waterDataSource = LocalWaterDataSource(store: store);
     final sleepDataSource = LocalSleepDataSource(store: store);
     final weightDataSource = LocalWeightDataSource(store: store);
+    final noteDataSource = LocalNoteDataSource(store: store);
 
     final authRepository = AuthRepositoryImpl(
       authService: authService,
@@ -70,6 +74,7 @@ class Application extends StatelessWidget {
     final waterRepository = WaterRepositoryImpl(local: waterDataSource);
     final sleepRepository = SleepRepositoryImpl(local: sleepDataSource);
     final weightRepository = WeightRepositoryImpl(local: weightDataSource);
+    final noteRepository = NoteRepositoryImpl(local: noteDataSource);
 
     return MultiBlocProvider(
       providers: [
@@ -110,6 +115,11 @@ class Application extends StatelessWidget {
           lazy: false,
           create: (_) => WeightBloc(repository: weightRepository)
             ..add(const WatchWeight()),
+        ),
+        BlocProvider<NoteBloc>(
+          lazy: false,
+          create: (_) => NoteBloc(repository: noteRepository)
+            ..add(const WatchNotes()),
         ),
         BlocProvider<SettingsBloc>(
           create: (_) => SettingsBloc(

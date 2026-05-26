@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../bloc/cycle_log/cycle_log_bloc.dart';
+import '../../../bloc/note/note_bloc.dart';
 import '../../../bloc/onboarding/onboarding_bloc.dart';
 import '../../../bloc/sleep/sleep_bloc.dart';
 import '../../../bloc/symptom/symptom_bloc.dart';
@@ -12,6 +13,7 @@ import '../../../bloc/weight/weight_bloc.dart';
 import '../../../core/route/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/cycle_log.dart';
+import '../../../data/models/note.dart';
 import '../../../data/models/sleep_log.dart';
 import '../../../data/models/symptom_entry.dart';
 import '../../../data/models/water_log.dart';
@@ -57,6 +59,13 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  void _openNoteEditor(DateTime day) {
+    context.pushNamed(
+      noteEditorRoute,
+      queryParameters: {'date': DateFormat('yyyy-MM-dd').format(day)},
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,6 +84,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       builder: (context, sleepState) {
                     return BlocBuilder<WeightBloc, WeightState>(
                       builder: (context, weightState) {
+                    return BlocBuilder<NoteBloc, NoteState>(
+                      builder: (context, noteState) {
                     return BlocBuilder<OnboardingBloc, OnboardingState>(
                       builder: (context, onboardState) {
                         final draft = onboardState.draft;
@@ -88,6 +99,8 @@ class _DashboardPageState extends State<DashboardPage> {
                         final weightLog =
                             weightState.logForDay(_selectedDay) ??
                                 weightState.latest;
+                        final noteForDay =
+                            noteState.noteForDay(_selectedDay);
 
                         return ListView(
                           padding:
@@ -132,6 +145,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                 current:
                                     weightState.logForDay(_selectedDay),
                               ),
+                              noteForDay: noteForDay,
+                              onOpenNote: () =>
+                                  _openNoteEditor(_selectedDay),
                             ),
                             const SizedBox(height: 20),
                             if (draft.cycleLength.isNotEmpty ||
@@ -141,6 +157,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           ],
                         );
                       },
+                    );
+                    },
                     );
                     },
                     );
@@ -265,11 +283,13 @@ class _SelectedDayCard extends StatelessWidget {
     required this.waterLog,
     required this.sleepLog,
     required this.weightLog,
+    required this.noteForDay,
     required this.onLogPeriod,
     required this.onLogSymptoms,
     required this.onLogWater,
     required this.onLogSleep,
     required this.onLogWeight,
+    required this.onOpenNote,
   });
 
   final DateTime selectedDay;
@@ -278,11 +298,13 @@ class _SelectedDayCard extends StatelessWidget {
   final WaterLog? waterLog;
   final SleepLog? sleepLog;
   final WeightLog? weightLog;
+  final Note? noteForDay;
   final VoidCallback onLogPeriod;
   final VoidCallback onLogSymptoms;
   final VoidCallback onLogWater;
   final VoidCallback onLogSleep;
   final VoidCallback onLogWeight;
+  final VoidCallback onOpenNote;
 
   @override
   Widget build(BuildContext context) {
@@ -300,6 +322,11 @@ class _SelectedDayCard extends StatelessWidget {
         : '${sleepLog!.hours.toStringAsFixed(1)}h • ${sleepLog!.quality}';
     final weightValue =
         weightLog == null ? '—' : '${weightLog!.weightKg.toStringAsFixed(1)} kg';
+    final noteValue = noteForDay == null
+        ? 'Tap to add'
+        : (noteForDay!.title.isNotEmpty
+            ? noteForDay!.title
+            : noteForDay!.body);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -401,6 +428,15 @@ class _SelectedDayCard extends StatelessWidget {
                     label: 'Weight',
                     value: weightValue,
                     onTap: onLogWeight,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DailyMetricChip(
+                    icon: Icons.edit_note_outlined,
+                    label: 'Notes',
+                    value: noteValue,
+                    onTap: onOpenNote,
                   ),
                 ),
               ],

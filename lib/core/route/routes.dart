@@ -16,3 +16,4 @@ const String profileRoute = 'profile';
 
 // Feature flows
 const String cycleLogFormRoute = 'cycle-log-form';
+const String noteEditorRoute = 'note-editor';

@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../view/screens/cycle_log/cycle_log_form_page.dart';
 import '../../view/screens/dashboard/dashboard_page.dart';
+import '../../view/screens/notes/note_editor_page.dart';
 import '../../view/screens/onboarding/onboarding_page.dart';
 import '../../view/screens/privacy/privacy_page.dart';
 import '../../view/screens/profile/profile_page.dart';
@@ -37,6 +38,15 @@ final GoRouter appRouter = GoRouter(
         final raw = state.uri.queryParameters['date'];
         final seed = raw == null ? null : DateTime.tryParse(raw);
         return CycleLogFormPage(seedDate: seed);
+      },
+    ),
+    GoRoute(
+      name: noteEditorRoute,
+      path: '/note',
+      builder: (_, state) {
+        final raw = state.uri.queryParameters['date'];
+        final seed = DateTime.tryParse(raw ?? '') ?? DateTime.now();
+        return NoteEditorPage(date: seed);
       },
     ),
     ShellRoute(
