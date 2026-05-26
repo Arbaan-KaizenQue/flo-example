@@ -97,6 +97,72 @@ class GeminiService {
     }
   }
 
+  /// Focused-insight call. User picked one or more topic chips from the
+  /// "Ask AI" sheet → we ask Gemini for 2–3 insights scoped to those areas.
+  /// Same schema as [generateInsights] minus the wellness score.
+  Future<JsonResponse> generateFocusedInsights({
+    required List<String> focusAreas,
+    required List<CycleLog> cycles,
+    required List<SymptomEntry> symptoms,
+    required List<SleepLog> sleep,
+    required List<WaterLog> water,
+    required OnboardingAnswers profile,
+  }) async {
+    if (!hasApiKey) {
+      return JsonResponse.failure(
+        message: 'No GEMINI_API_KEY found in .env',
+        statusCode: 401,
+      );
+    }
+    if (focusAreas.isEmpty) {
+      return JsonResponse.failure(message: 'Pick at least one focus area');
+    }
+    try {
+      final model = GenerativeModel(
+        model: modelName,
+        apiKey: apiKey,
+        generationConfig: GenerationConfig(
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+          maxOutputTokens: 900,
+        ),
+        systemInstruction: Content.system(_systemPrompt),
+      );
+
+      final userData = _buildUserPrompt(
+        cycles: cycles,
+        symptoms: symptoms,
+        sleep: sleep,
+        water: water,
+        profile: profile,
+      );
+      final focusInstruction =
+          'FOCUS ONLY on these areas: ${focusAreas.join(', ')}. '
+          'Return ONE JSON object with EXACTLY this shape: '
+          '{ "insights": [...] }. Omit wellness_score. '
+          'Generate 2–3 insights, each tied to one of the focus areas.';
+
+      final response = await model.generateContent([
+        Content.text('$userData\n\n$focusInstruction'),
+      ]);
+      final raw = response.text;
+      if (raw == null || raw.isEmpty) {
+        return JsonResponse.failure(message: 'Empty Gemini response');
+      }
+      final bundle = _parseBundle(raw);
+      return JsonResponse.success(message: 'OK', data: bundle.insights);
+    } on InvalidApiKey {
+      return JsonResponse.failure(
+        message: 'Invalid Gemini API key',
+        statusCode: 401,
+      );
+    } on ServerException catch (e) {
+      return JsonResponse.failure(message: 'Gemini server error: ${e.message}');
+    } catch (e) {
+      return JsonResponse.failure(message: 'Gemini error: $e');
+    }
+  }
+
   // ============================================================
   // Prompt + parsing
   // ============================================================

@@ -16,6 +16,26 @@ class RefreshRecommendations extends RecommendationEvent {
   const RefreshRecommendations();
 }
 
+/// Focused generation triggered by the "Ask AI" FAB sheet.
+/// [focusAreas] is the user's chip selection (e.g. ['cycle', 'sleep']).
+class GenerateFocusedInsights extends RecommendationEvent {
+  const GenerateFocusedInsights({required this.focusAreas});
+
+  final List<String> focusAreas;
+
+  @override
+  List<Object?> get props => [focusAreas];
+}
+
+class _FocusedInsightsAppended extends RecommendationEvent {
+  const _FocusedInsightsAppended({required this.insights});
+
+  final List<Recommendation> insights;
+
+  @override
+  List<Object?> get props => [insights];
+}
+
 class _RecomputeRequested extends RecommendationEvent {
   const _RecomputeRequested();
 }

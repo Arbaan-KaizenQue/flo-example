@@ -43,10 +43,12 @@ class RecommendationBloc
         )) {
     on<WatchRecommendations>(_onWatch);
     on<RefreshRecommendations>(_onRefresh);
+    on<GenerateFocusedInsights>(_onFocused);
     on<_RecomputeRequested>(_onRecomputeRequested);
     on<_StoredInsightsLoaded>(_onStoredLoaded);
     on<_GenerationStarted>(_onGenStarted);
     on<_GenerationFinished>(_onGenFinished);
+    on<_FocusedInsightsAppended>(_onFocusedAppended);
   }
 
   final RecommendationRepository recommendationRepository;
@@ -140,6 +142,46 @@ class RecommendationBloc
   FutureOr<void> _onGenStarted(
       _GenerationStarted event, Emitter<RecommendationState> emit) {
     emit(state.copyWith(isLoading: true, error: ''));
+  }
+
+  FutureOr<void> _onFocused(
+      GenerateFocusedInsights event, Emitter<RecommendationState> emit) async {
+    if (!recommendationRepository.hasApiKey) return;
+    _profile = onboardingRepository.loadAnswers();
+    emit(state.copyWith(isLoading: true, error: ''));
+    final res = await recommendationRepository.generateFocused(
+      focusAreas: event.focusAreas,
+      cycles: _cycles,
+      symptoms: _symptoms,
+      sleep: _sleep,
+      water: _water,
+      profile: _profile,
+    );
+    if (res.success) {
+      final fresh = res.data as List<Recommendation>? ?? const [];
+      if (fresh.isNotEmpty) {
+        unawaited(aiInsightRepository.saveMany(fresh));
+      }
+      add(_FocusedInsightsAppended(insights: fresh));
+    } else {
+      emit(state.copyWith(isLoading: false, error: res.message));
+    }
+  }
+
+  FutureOr<void> _onFocusedAppended(
+      _FocusedInsightsAppended event, Emitter<RecommendationState> emit) {
+    // Prepend new focused insights and dedupe by id.
+    final existingIds = state.recommendations.map((r) => r.id).toSet();
+    final fresh = event.insights
+        .where((r) => !existingIds.contains(r.id))
+        .toList(growable: false);
+    final merged = [...fresh, ...state.recommendations];
+    emit(state.copyWith(
+      isLoading: false,
+      recommendations: merged,
+      lastUpdatedAt: DateTime.now(),
+      error: '',
+    ));
   }
 
   FutureOr<void> _onGenFinished(

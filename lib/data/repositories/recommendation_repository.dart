@@ -9,9 +9,19 @@ import '../services/gemini_service.dart';
 abstract class RecommendationRepository {
   bool get hasApiKey;
 
-  /// Returns a [JsonResponse] whose `data` is an [AIInsightsBundle] on
-  /// success.
+  /// Full refresh. Returns [AIInsightsBundle] in `data`.
   Future<JsonResponse> generate({
+    required List<CycleLog> cycles,
+    required List<SymptomEntry> symptoms,
+    required List<SleepLog> sleep,
+    required List<WaterLog> water,
+    required OnboardingAnswers profile,
+  });
+
+  /// Focused — user picked specific topic chips from the Ask-AI sheet.
+  /// Returns `List<Recommendation>` in `data`.
+  Future<JsonResponse> generateFocused({
+    required List<String> focusAreas,
     required List<CycleLog> cycles,
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
@@ -37,6 +47,24 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     required OnboardingAnswers profile,
   }) =>
       geminiService.generateInsights(
+        cycles: cycles,
+        symptoms: symptoms,
+        sleep: sleep,
+        water: water,
+        profile: profile,
+      );
+
+  @override
+  Future<JsonResponse> generateFocused({
+    required List<String> focusAreas,
+    required List<CycleLog> cycles,
+    required List<SymptomEntry> symptoms,
+    required List<SleepLog> sleep,
+    required List<WaterLog> water,
+    required OnboardingAnswers profile,
+  }) =>
+      geminiService.generateFocusedInsights(
+        focusAreas: focusAreas,
         cycles: cycles,
         symptoms: symptoms,
         sleep: sleep,
