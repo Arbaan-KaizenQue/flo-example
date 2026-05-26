@@ -31,49 +31,6 @@ final _entities = <obx_int.ModelEntity>[
         type: 6,
         flags: 1,
       ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 1664351428344320907),
-        name: 'id',
-        type: 9,
-        flags: 2080,
-        indexId: const obx_int.IdUid(1, 926520160856637244),
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 8807875084187167664),
-        name: 'title',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 8253864812096862237),
-        name: 'content',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 5045083966737402105),
-        name: 'createdAt',
-        type: 10,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 2191130274546718055),
-        name: 'updatedAt',
-        type: 10,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 4834094100790073999),
-        name: 'deleted',
-        type: 1,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 8746823236261805982),
-        name: 'syncedToDrive',
-        type: 1,
-        flags: 0,
-      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
@@ -123,8 +80,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
-    retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredIndexUids: const [926520160856637244],
+    retiredPropertyUids: const [
+      1664351428344320907,
+      8807875084187167664,
+      8253864812096862237,
+      5045083966737402105,
+      2191130274546718055,
+      4834094100790073999,
+      8746823236261805982,
+    ],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -141,18 +106,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         object.obxId = id;
       },
       objectToFB: (ItemEntity object, fb.Builder fbb) {
-        final idOffset = fbb.writeString(object.id);
-        final titleOffset = fbb.writeString(object.title);
-        final contentOffset = fbb.writeString(object.content);
         fbb.startTable(9);
         fbb.addInt64(0, object.obxId);
-        fbb.addOffset(1, idOffset);
-        fbb.addOffset(2, titleOffset);
-        fbb.addOffset(3, contentOffset);
-        fbb.addInt64(4, object.createdAt.millisecondsSinceEpoch);
-        fbb.addInt64(5, object.updatedAt.millisecondsSinceEpoch);
-        fbb.addBool(6, object.deleted);
-        fbb.addBool(7, object.syncedToDrive);
         fbb.finish(fbb.endTable());
         return object.obxId;
       },
@@ -165,43 +120,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final idParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final titleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final contentParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
-          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
-        );
-        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
-          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
-        );
-        final deletedParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          16,
-          false,
-        );
-        final syncedToDriveParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          18,
-          false,
-        );
-        final object = ItemEntity(
-          obxId: obxIdParam,
-          id: idParam,
-          title: titleParam,
-          content: contentParam,
-          createdAt: createdAtParam,
-          updatedAt: updatedAtParam,
-          deleted: deletedParam,
-          syncedToDrive: syncedToDriveParam,
-        );
+        final object = ItemEntity(obxId: obxIdParam);
 
         return object;
       },
@@ -216,40 +135,5 @@ class ItemEntity_ {
   /// See [ItemEntity.obxId].
   static final obxId = obx.QueryIntegerProperty<ItemEntity>(
     _entities[0].properties[0],
-  );
-
-  /// See [ItemEntity.id].
-  static final id = obx.QueryStringProperty<ItemEntity>(
-    _entities[0].properties[1],
-  );
-
-  /// See [ItemEntity.title].
-  static final title = obx.QueryStringProperty<ItemEntity>(
-    _entities[0].properties[2],
-  );
-
-  /// See [ItemEntity.content].
-  static final content = obx.QueryStringProperty<ItemEntity>(
-    _entities[0].properties[3],
-  );
-
-  /// See [ItemEntity.createdAt].
-  static final createdAt = obx.QueryDateProperty<ItemEntity>(
-    _entities[0].properties[4],
-  );
-
-  /// See [ItemEntity.updatedAt].
-  static final updatedAt = obx.QueryDateProperty<ItemEntity>(
-    _entities[0].properties[5],
-  );
-
-  /// See [ItemEntity.deleted].
-  static final deleted = obx.QueryBooleanProperty<ItemEntity>(
-    _entities[0].properties[6],
-  );
-
-  /// See [ItemEntity.syncedToDrive].
-  static final syncedToDrive = obx.QueryBooleanProperty<ItemEntity>(
-    _entities[0].properties[7],
   );
 }

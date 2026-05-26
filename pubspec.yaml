@@ -19,6 +19,9 @@ dependencies:
   # Routing
   go_router: ^14.6.0
 
+  # Calendar UI (Feature 01)
+  table_calendar: ^3.1.2
+
   # Networking
   dio: ^5.7.0
 

@@ -7,11 +7,10 @@ import '../bloc/onboarding/onboarding_bloc.dart';
 import '../bloc/settings/settings_bloc.dart';
 import '../bloc/sync/sync_bloc.dart';
 import '../core/route/app_router.dart';
-import '../data/local/datasources/local_item_datasource.dart';
+import '../core/theme/app_theme.dart';
 import '../data/local/objectbox_store.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/drive_repository.dart';
-import '../data/repositories/item_repository.dart';
 import '../data/repositories/onboarding_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/services/auth_service.dart';
@@ -36,18 +35,15 @@ class Application extends StatelessWidget {
     // Services
     final authService = AuthService();
     final driveService = DriveService(authService: authService);
-    final localItemDataSource = LocalItemDataSource(store: store);
 
     // Repositories
     final authRepository = AuthRepositoryImpl(
       authService: authService,
       prefs: prefs,
     );
-    final itemRepository = ItemRepositoryImpl(local: localItemDataSource);
     final driveRepository = DriveRepositoryImpl(
       driveService: driveService,
       authService: authService,
-      itemRepository: itemRepository,
       prefs: prefs,
     );
     final settingsRepository = SettingsRepositoryImpl(prefs: prefs);
@@ -73,7 +69,6 @@ class Application extends StatelessWidget {
             settingsRepository: settingsRepository,
             authRepository: authRepository,
             driveRepository: driveRepository,
-            itemRepository: itemRepository,
             onboardingRepository: onboardingRepository,
           ),
         ),
@@ -81,6 +76,7 @@ class Application extends StatelessWidget {
       child: MaterialApp.router(
         title: 'Sync App',
         debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
         routerConfig: appRouter,
       ),
     );

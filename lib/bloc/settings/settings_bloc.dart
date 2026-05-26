@@ -5,7 +5,6 @@ import 'package:equatable/equatable.dart';
 
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/drive_repository.dart';
-import '../../data/repositories/item_repository.dart';
 import '../../data/repositories/onboarding_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 
@@ -20,7 +19,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     required this.settingsRepository,
     required this.authRepository,
     required this.driveRepository,
-    required this.itemRepository,
     required this.onboardingRepository,
   }) : super(SettingsState(
           acceptedTerms: settingsRepository.acceptedTerms,
@@ -41,7 +39,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final SettingsRepository settingsRepository;
   final AuthRepository authRepository;
   final DriveRepository driveRepository;
-  final ItemRepository itemRepository;
   final OnboardingRepository onboardingRepository;
 
   FutureOr<void> _onRefresh(
@@ -75,7 +72,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           }
         }
         await settingsRepository.setDriveEnabled(true);
-        await itemRepository.markAllUnsynced();
         final syncRes = await driveRepository.performSync();
         emit(state.copyWith(
           isLoading: false,
