@@ -99,10 +99,61 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "4:9156708421514262618",
+      "lastPropertyId": "8:7380117130543612656",
+      "name": "WaterLogEntity",
+      "properties": [
+        {
+          "id": "1:8935177736242401935",
+          "name": "obxId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3104117969445008148",
+          "name": "id",
+          "indexId": "4:7574370826086626639",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:3679144854447382605",
+          "name": "date",
+          "type": 10
+        },
+        {
+          "id": "4:825409986246399102",
+          "name": "amountMl",
+          "type": 6
+        },
+        {
+          "id": "5:7956326465262304455",
+          "name": "goalMl",
+          "type": 6
+        },
+        {
+          "id": "6:1974150770811534548",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "7:673641854341162819",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "8:7380117130543612656",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "3:4679046369151296177",
-  "lastIndexId": "3:6856431955205446257",
+  "lastEntityId": "4:9156708421514262618",
+  "lastIndexId": "4:7574370826086626639",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

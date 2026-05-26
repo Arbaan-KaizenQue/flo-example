@@ -6,13 +6,17 @@ import 'package:intl/intl.dart';
 import '../../../bloc/cycle_log/cycle_log_bloc.dart';
 import '../../../bloc/onboarding/onboarding_bloc.dart';
 import '../../../bloc/symptom/symptom_bloc.dart';
+import '../../../bloc/water/water_bloc.dart';
 import '../../../core/route/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/cycle_log.dart';
 import '../../../data/models/symptom_entry.dart';
+import '../../../data/models/water_log.dart';
 import '../../widgets/cycle_calendar.dart';
+import '../../widgets/daily_metric_chip.dart';
 import '../../widgets/symptom_picker_sheet.dart';
 import '../../widgets/sync_status_indicator.dart';
+import '../../widgets/water_log_sheet.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -41,18 +45,9 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _openLogForm(DateTime day) {
-    final isoDate = DateFormat('yyyy-MM-dd').format(day);
     context.pushNamed(
       cycleLogFormRoute,
-      queryParameters: {'date': isoDate},
-    );
-  }
-
-  void _openSymptomSheet(DateTime day, List<String> initial) {
-    showSymptomPickerSheet(
-      context,
-      date: day,
-      initialSelection: initial,
+      queryParameters: {'date': DateFormat('yyyy-MM-dd').format(day)},
     );
   }
 
@@ -68,41 +63,56 @@ class _DashboardPageState extends State<DashboardPage> {
           builder: (context, logState) {
             return BlocBuilder<SymptomBloc, SymptomState>(
               builder: (context, symptomState) {
-                return BlocBuilder<OnboardingBloc, OnboardingState>(
-                  builder: (context, onboardState) {
-                    final draft = onboardState.draft;
-                    final logForDay = logState.logForDay(_selectedDay);
-                    final symptomEntry =
-                        symptomState.entryForDay(_selectedDay);
+                return BlocBuilder<WaterBloc, WaterState>(
+                  builder: (context, waterState) {
+                    return BlocBuilder<OnboardingBloc, OnboardingState>(
+                      builder: (context, onboardState) {
+                        final draft = onboardState.draft;
+                        final logForDay = logState.logForDay(_selectedDay);
+                        final symptomEntry =
+                            symptomState.entryForDay(_selectedDay);
+                        final waterLog =
+                            waterState.logForDay(_selectedDay);
 
-                    return ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                      children: [
-                        _Greeting(),
-                        const SizedBox(height: 16),
-                        CycleCalendar(
-                          focusedDay: _focusedDay,
-                          selectedDay: _selectedDay,
-                          onDaySelected: _onDaySelected,
-                          periodDays: logState.periodDays,
-                        ),
-                        const SizedBox(height: 12),
-                        _SelectedDayCard(
-                          selectedDay: _selectedDay,
-                          logForDay: logForDay,
-                          symptomEntry: symptomEntry,
-                          onLogPeriod: () => _openLogForm(_selectedDay),
-                          onLogSymptoms: () => _openSymptomSheet(
-                            _selectedDay,
-                            symptomEntry?.symptoms ?? const [],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        if (draft.cycleLength.isNotEmpty ||
-                            draft.symptoms.isNotEmpty ||
-                            draft.goals.isNotEmpty)
-                          ..._summaryCards(context, draft),
-                      ],
+                        return ListView(
+                          padding:
+                              const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          children: [
+                            _Greeting(),
+                            const SizedBox(height: 16),
+                            CycleCalendar(
+                              focusedDay: _focusedDay,
+                              selectedDay: _selectedDay,
+                              onDaySelected: _onDaySelected,
+                              periodDays: logState.periodDays,
+                            ),
+                            const SizedBox(height: 12),
+                            _SelectedDayCard(
+                              selectedDay: _selectedDay,
+                              logForDay: logForDay,
+                              symptomEntry: symptomEntry,
+                              waterLog: waterLog,
+                              onLogPeriod: () => _openLogForm(_selectedDay),
+                              onLogSymptoms: () => showSymptomPickerSheet(
+                                context,
+                                date: _selectedDay,
+                                initialSelection:
+                                    symptomEntry?.symptoms ?? const [],
+                              ),
+                              onLogWater: () => showWaterLogSheet(
+                                context,
+                                date: _selectedDay,
+                                current: waterLog,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            if (draft.cycleLength.isNotEmpty ||
+                                draft.symptoms.isNotEmpty ||
+                                draft.goals.isNotEmpty)
+                              ..._summaryCards(context, draft),
+                          ],
+                        );
+                      },
                     );
                   },
                 );
@@ -220,15 +230,19 @@ class _SelectedDayCard extends StatelessWidget {
     required this.selectedDay,
     required this.logForDay,
     required this.symptomEntry,
+    required this.waterLog,
     required this.onLogPeriod,
     required this.onLogSymptoms,
+    required this.onLogWater,
   });
 
   final DateTime selectedDay;
   final CycleLog? logForDay;
   final SymptomEntry? symptomEntry;
+  final WaterLog? waterLog;
   final VoidCallback onLogPeriod;
   final VoidCallback onLogSymptoms;
+  final VoidCallback onLogWater;
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +250,11 @@ class _SelectedDayCard extends StatelessWidget {
     final hasPeriod = logForDay != null;
     final hasSymptoms =
         symptomEntry != null && symptomEntry!.symptoms.isNotEmpty;
+
+    final waterValue = waterLog == null
+        ? '0 / 2.0L'
+        : '${(waterLog!.amountMl / 1000).toStringAsFixed(1)}'
+            ' / ${(waterLog!.goalMl / 1000).toStringAsFixed(1)}L';
 
     return Card(
       margin: EdgeInsets.zero,
@@ -305,6 +324,21 @@ class _SelectedDayCard extends StatelessWidget {
                     .toList(),
               ),
             ],
+            const SizedBox(height: 16),
+            // Quick-log row (water / sleep / weight / notes land here as
+            // each feature ships).
+            Row(
+              children: [
+                Expanded(
+                  child: DailyMetricChip(
+                    icon: Icons.water_drop_outlined,
+                    label: 'Water',
+                    value: waterValue,
+                    onTap: onLogWater,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             Row(
               children: [
