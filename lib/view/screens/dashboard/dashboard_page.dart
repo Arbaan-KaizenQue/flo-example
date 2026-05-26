@@ -143,7 +143,6 @@ class _DashboardPageState extends State<DashboardPage> {
                               onLogWater: () => showWaterLogSheet(
                                 context,
                                 date: _selectedDay,
-                                current: waterLog,
                               ),
                               onLogSleep: () => showSleepLogSheet(
                                 context,

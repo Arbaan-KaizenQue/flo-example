@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../../../bloc/cycle_log/cycle_log_bloc.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/cycle_log.dart';
 
-/// [CycleLogFormPage] — create or edit a single [CycleLog].
-/// Routed via path: `/cycle-log?date=YYYY-MM-DD` (date is the seed for
-/// `startDate`). If a log already covers that date, opens in edit mode.
+/// [CycleLogFormPage] — pick a start day on the calendar; the end day is
+/// auto-derived from the selected flow intensity. Tapping a new day moves
+/// the whole range. Changing flow recomputes the range length.
 class CycleLogFormPage extends StatefulWidget {
   const CycleLogFormPage({super.key, this.seedDate});
 
@@ -20,18 +21,31 @@ class CycleLogFormPage extends StatefulWidget {
 }
 
 class _CycleLogFormPageState extends State<CycleLogFormPage> {
-  late DateTime _startDate;
-  DateTime? _endDate;
-  String _flow = 'medium';
-  CycleLog? _existing;
-
+  /// Default range length in days for each flow intensity.
+  static const Map<String, int> _flowDays = {
+    'light': 4,
+    'medium': 6,
+    'heavy': 7,
+  };
   static const _flows = ['light', 'medium', 'heavy'];
+
+  late DateTime _startDate;
+  late String _flow;
+  CycleLog? _existing;
+  late DateTime _focusedDay;
+
+  DateTime get _endDate {
+    final days = _flowDays[_flow] ?? 5;
+    return _startDate.add(Duration(days: days - 1));
+  }
 
   @override
   void initState() {
     super.initState();
     final seed = widget.seedDate ?? DateTime.now();
     _startDate = DateTime(seed.year, seed.month, seed.day);
+    _flow = 'medium';
+    _focusedDay = _startDate;
 
     // If a log already covers the seed date, pre-fill for edit.
     final state = context.read<CycleLogBloc>().state;
@@ -43,34 +57,17 @@ class _CycleLogFormPageState extends State<CycleLogFormPage> {
         existing.startDate.month,
         existing.startDate.day,
       );
-      _endDate = existing.endDate;
       _flow = existing.flow;
+      _focusedDay = _startDate;
     }
   }
 
-  Future<void> _pickStart() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _startDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _startDate = picked;
-        if (_endDate != null && _endDate!.isBefore(picked)) _endDate = null;
-      });
-    }
-  }
-
-  Future<void> _pickEnd() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _endDate ?? _startDate,
-      firstDate: _startDate,
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) setState(() => _endDate = picked);
+  void _onDaySelected(DateTime selected, DateTime focused) {
+    setState(() {
+      _startDate =
+          DateTime(selected.year, selected.month, selected.day);
+      _focusedDay = focused;
+    });
   }
 
   void _save() {
@@ -89,9 +86,14 @@ class _CycleLogFormPageState extends State<CycleLogFormPage> {
     context.pop();
   }
 
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final isEdit = _existing != null;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? 'Edit period' : 'Log period'),
@@ -106,24 +108,91 @@ class _CycleLogFormPageState extends State<CycleLogFormPage> {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
-            _DateRow(
-              label: 'Start date',
-              value: _startDate,
-              onTap: _pickStart,
+            Text(
+              'Tap your period start day',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'We\'ll mark the next ${_flowDays[_flow]} days based on '
+              'your flow.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
             ),
             const SizedBox(height: 12),
-            _DateRow(
-              label: 'End date',
-              value: _endDate,
-              hint: 'Ongoing',
-              onTap: _pickEnd,
-              onClear: _endDate == null
-                  ? null
-                  : () => setState(() => _endDate = null),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+                child: TableCalendar<void>(
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.now(),
+                  focusedDay: _focusedDay,
+                  startingDayOfWeek: StartingDayOfWeek.monday,
+                  calendarFormat: CalendarFormat.month,
+                  availableGestures: AvailableGestures.horizontalSwipe,
+                  rangeStartDay: _startDate,
+                  rangeEndDay: _endDate,
+                  rangeSelectionMode: RangeSelectionMode.toggledOff,
+                  onDaySelected: _onDaySelected,
+                  selectedDayPredicate: (d) => _sameDay(d, _startDate),
+                  headerStyle: HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    leftChevronIcon: Icon(
+                      Icons.chevron_left,
+                      color: scheme.onSurface,
+                    ),
+                    rightChevronIcon: Icon(
+                      Icons.chevron_right,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                  calendarStyle: CalendarStyle(
+                    outsideDaysVisible: false,
+                    todayDecoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.pink, width: 1.2),
+                    ),
+                    todayTextStyle: TextStyle(color: scheme.onSurface),
+                    rangeStartDecoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.pink,
+                    ),
+                    rangeStartTextStyle: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    rangeEndDecoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.pink.withValues(alpha: 0.8),
+                    ),
+                    rangeEndTextStyle: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    withinRangeDecoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.pink.withValues(alpha: 0.25),
+                    ),
+                    withinRangeTextStyle:
+                        TextStyle(color: scheme.onSurface),
+                    rangeHighlightColor:
+                        AppTheme.pink.withValues(alpha: 0.18),
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            _RangeSummary(
+              start: _startDate,
+              end: _endDate,
+              days: _flowDays[_flow] ?? 5,
+            ),
+            const SizedBox(height: 20),
             Text(
               'Flow intensity',
               style: Theme.of(context).textTheme.titleSmall,
@@ -133,16 +202,20 @@ class _CycleLogFormPageState extends State<CycleLogFormPage> {
               spacing: 8,
               children: _flows
                   .map((f) => ChoiceChip(
-                        label: Text(f[0].toUpperCase() + f.substring(1)),
+                        label: Text(
+                          '${f[0].toUpperCase()}${f.substring(1)} '
+                          '· ${_flowDays[f]}d',
+                        ),
                         selected: _flow == f,
                         onSelected: (_) => setState(() => _flow = f),
                       ))
                   .toList(),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: AppTheme.pink,
+                padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               onPressed: _save,
               child: Text(isEdit ? 'Save changes' : 'Log period'),
@@ -154,42 +227,49 @@ class _CycleLogFormPageState extends State<CycleLogFormPage> {
   }
 }
 
-class _DateRow extends StatelessWidget {
-  const _DateRow({
-    required this.label,
-    required this.value,
-    required this.onTap,
-    this.hint,
-    this.onClear,
+class _RangeSummary extends StatelessWidget {
+  const _RangeSummary({
+    required this.start,
+    required this.end,
+    required this.days,
   });
 
-  final String label;
-  final DateTime? value;
-  final String? hint;
-  final VoidCallback onTap;
-  final VoidCallback? onClear;
+  final DateTime start;
+  final DateTime end;
+  final int days;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Card(
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        onTap: onTap,
-        leading: Icon(Icons.calendar_today_outlined, color: scheme.primary),
-        title: Text(label),
-        subtitle: Text(
-          value == null
-              ? (hint ?? 'Pick a date')
-              : DateFormat('EEE, MMM d, yyyy').format(value!),
-        ),
-        trailing: onClear == null
-            ? const Icon(Icons.chevron_right)
-            : IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: onClear,
-                tooltip: 'Clear',
-              ),
+    final fmt = DateFormat('EEE, MMM d');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.pink.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.water_drop, color: AppTheme.pink),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${fmt.format(start)}  →  ${fmt.format(end)}',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Text(
+                  '$days days',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

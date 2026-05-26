@@ -6,7 +6,25 @@ import '../../bloc/water/water_bloc.dart';
 import '../../data/models/water_log.dart';
 
 class WaterLogSheet extends StatelessWidget {
-  const WaterLogSheet({super.key, required this.date, required this.current});
+  const WaterLogSheet({super.key, required this.date});
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    // Read live from WaterBloc so taps on the quick-add chips refresh
+    // the ring + total inside the sheet itself.
+    return BlocBuilder<WaterBloc, WaterState>(
+      builder: (context, state) {
+        final current = state.logForDay(date);
+        return _SheetBody(date: date, current: current);
+      },
+    );
+  }
+}
+
+class _SheetBody extends StatelessWidget {
+  const _SheetBody({required this.date, required this.current});
 
   final DateTime date;
   final WaterLog? current;
@@ -52,11 +70,17 @@ class WaterLogSheet extends StatelessWidget {
                   alignment: Alignment.center,
                   children: [
                     SizedBox.expand(
-                      child: CircularProgressIndicator(
-                        value: progress,
-                        strokeWidth: 10,
-                        backgroundColor: scheme.surfaceContainerHighest,
-                        valueColor: AlwaysStoppedAnimation(scheme.primary),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: progress),
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeOut,
+                        builder: (_, value, __) => CircularProgressIndicator(
+                          value: value,
+                          strokeWidth: 10,
+                          backgroundColor: scheme.surfaceContainerHighest,
+                          valueColor:
+                              AlwaysStoppedAnimation(scheme.primary),
+                        ),
                       ),
                     ),
                     Column(
@@ -103,9 +127,11 @@ class WaterLogSheet extends StatelessWidget {
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.remove),
                     label: const Text('Remove 200 ml'),
-                    onPressed: () => context
-                        .read<WaterBloc>()
-                        .add(AddWater(date: date, ml: -200)),
+                    onPressed: amount <= 0
+                        ? null
+                        : () => context
+                            .read<WaterBloc>()
+                            .add(AddWater(date: date, ml: -200)),
                   ),
                 ),
               ],
@@ -146,17 +172,17 @@ class _QuickAddChip extends StatelessWidget {
   }
 }
 
+/// `current` arg removed — the sheet now reads live from [WaterBloc].
 Future<void> showWaterLogSheet(
   BuildContext context, {
   required DateTime date,
-  required WaterLog? current,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (sheetCtx) => BlocProvider.value(
       value: context.read<WaterBloc>(),
-      child: WaterLogSheet(date: date, current: current),
+      child: WaterLogSheet(date: date),
     ),
   );
 }
