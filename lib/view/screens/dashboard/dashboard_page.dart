@@ -100,8 +100,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         final sleepLog =
                             sleepState.logForDay(_selectedDay);
                         final weightLog =
-                            weightState.logForDay(_selectedDay) ??
-                                weightState.latest;
+                            weightState.weightOnOrBefore(_selectedDay);
                         final noteForDay =
                             noteState.noteForDay(_selectedDay);
 

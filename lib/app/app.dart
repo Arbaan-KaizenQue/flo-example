@@ -28,6 +28,7 @@ import '../data/repositories/cycle_log_repository.dart';
 import '../data/repositories/drive_repository.dart';
 import '../data/repositories/note_repository.dart';
 import '../data/repositories/onboarding_repository.dart';
+import '../data/repositories/recommendation_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/sleep_repository.dart';
 import '../data/repositories/symptom_repository.dart';
@@ -35,6 +36,7 @@ import '../data/repositories/water_repository.dart';
 import '../data/repositories/weight_repository.dart';
 import '../data/services/auth_service.dart';
 import '../data/services/drive_service.dart';
+import '../data/services/gemini_service.dart';
 
 class Application extends StatelessWidget {
   const Application({
@@ -77,6 +79,9 @@ class Application extends StatelessWidget {
     final sleepRepository = SleepRepositoryImpl(local: sleepDataSource);
     final weightRepository = WeightRepositoryImpl(local: weightDataSource);
     final noteRepository = NoteRepositoryImpl(local: noteDataSource);
+    final recommendationRepository = RecommendationRepositoryImpl(
+      geminiService: GeminiService(),
+    );
 
     return MultiBlocProvider(
       providers: [
@@ -127,6 +132,7 @@ class Application extends StatelessWidget {
         BlocProvider<RecommendationBloc>(
           lazy: false,
           create: (_) => RecommendationBloc(
+            recommendationRepository: recommendationRepository,
             cycleLogRepository: cycleLogRepository,
             symptomRepository: symptomRepository,
             sleepRepository: sleepRepository,

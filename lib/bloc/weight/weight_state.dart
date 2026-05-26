@@ -38,6 +38,20 @@ class WeightState extends Equatable {
   /// Most recent (latest-by-date) log, regardless of which day is shown.
   WeightLog? get latest => logs.isEmpty ? null : logs.first;
 
+  /// Carry-forward: the most recent log dated **on or before** [day].
+  /// Lets a single monthly weigh-in keep showing for the rest of the month
+  /// (and the rest of the year) until a newer entry replaces it.
+  WeightLog? weightOnOrBefore(DateTime day) {
+    final target = DateTime(day.year, day.month, day.day);
+    WeightLog? best;
+    for (final l in logs) {
+      final d = DateTime(l.date.year, l.date.month, l.date.day);
+      if (d.isAfter(target)) continue;
+      if (best == null || d.isAfter(best.date)) best = l;
+    }
+    return best;
+  }
+
   @override
   List<Object> get props => [isLoading, error, message, logs];
 }

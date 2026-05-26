@@ -49,6 +49,10 @@ dependencies:
   intl: ^0.19.0
   logger: ^2.5.0
 
+  # AI (Feature 11)
+  google_generative_ai: ^0.4.6
+  flutter_dotenv: ^5.2.1
+
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
@@ -67,3 +71,5 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  assets:
+    - .env

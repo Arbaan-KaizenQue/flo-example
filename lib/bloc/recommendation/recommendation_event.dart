@@ -11,7 +11,25 @@ class WatchRecommendations extends RecommendationEvent {
   const WatchRecommendations();
 }
 
-/// Internal — fired by any source-stream listener after caching its slice.
-class _RecomputeRecommendations extends RecommendationEvent {
-  const _RecomputeRecommendations();
+/// Manual refresh — bypasses debounce + cache.
+class RefreshRecommendations extends RecommendationEvent {
+  const RefreshRecommendations();
+}
+
+class _RecomputeRequested extends RecommendationEvent {
+  const _RecomputeRequested();
+}
+
+class _GenerationStarted extends RecommendationEvent {
+  const _GenerationStarted();
+}
+
+class _GenerationFinished extends RecommendationEvent {
+  const _GenerationFinished({this.recommendations, this.error});
+
+  final List<Recommendation>? recommendations;
+  final String? error;
+
+  @override
+  List<Object?> get props => [recommendations, error];
 }
