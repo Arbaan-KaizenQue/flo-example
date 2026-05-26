@@ -19,7 +19,7 @@ import '../../../data/models/sleep_log.dart';
 import '../../../data/models/symptom_entry.dart';
 import '../../../data/models/water_log.dart';
 import '../../../data/models/weight_log.dart';
-import '../../widgets/ask_ai_sheet.dart';
+import '../../widgets/ask_ai_dialog.dart';
 import '../../widgets/cycle_calendar.dart';
 import '../../widgets/daily_metric_chip.dart';
 import '../../widgets/insights_card.dart';
@@ -82,7 +82,7 @@ class _DashboardPageState extends State<DashboardPage> {
         foregroundColor: Colors.white,
         icon: const Icon(Icons.auto_awesome),
         label: const Text('Ask AI'),
-        onPressed: () => showAskAISheet(context),
+        onPressed: () => showAskAIDialog(context),
       ),
       body: SafeArea(
         child: BlocBuilder<CycleLogBloc, CycleLogState>(

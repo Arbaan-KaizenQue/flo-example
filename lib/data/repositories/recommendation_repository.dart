@@ -18,9 +18,9 @@ abstract class RecommendationRepository {
     required OnboardingAnswers profile,
   });
 
-  /// Focused — user picked specific topic chips from the Ask-AI sheet.
-  /// Returns `List<Recommendation>` in `data`.
-  Future<JsonResponse> generateFocused({
+  /// Streaming prose response for the Ask-AI dialog.
+  /// Throws via `Stream.onError` on auth / quota / network errors.
+  Stream<String> streamFocused({
     required List<String> focusAreas,
     required List<CycleLog> cycles,
     required List<SymptomEntry> symptoms,
@@ -55,7 +55,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
       );
 
   @override
-  Future<JsonResponse> generateFocused({
+  Stream<String> streamFocused({
     required List<String> focusAreas,
     required List<CycleLog> cycles,
     required List<SymptomEntry> symptoms,
@@ -63,7 +63,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     required List<WaterLog> water,
     required OnboardingAnswers profile,
   }) =>
-      geminiService.generateFocusedInsights(
+      geminiService.streamFocusedInsight(
         focusAreas: focusAreas,
         cycles: cycles,
         symptoms: symptoms,
