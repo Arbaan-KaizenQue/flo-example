@@ -7,6 +7,7 @@ import '../bloc/cycle_log/cycle_log_bloc.dart';
 import '../bloc/note/note_bloc.dart';
 import '../bloc/onboarding/onboarding_bloc.dart';
 import '../bloc/prediction/prediction_bloc.dart';
+import '../bloc/recommendation/recommendation_bloc.dart';
 import '../bloc/settings/settings_bloc.dart';
 import '../bloc/sleep/sleep_bloc.dart';
 import '../bloc/symptom/symptom_bloc.dart';
@@ -122,6 +123,16 @@ class Application extends StatelessWidget {
           create: (_) => PredictionBloc(
             cycleLogRepository: cycleLogRepository,
           )..add(const WatchCycleHistory()),
+        ),
+        BlocProvider<RecommendationBloc>(
+          lazy: false,
+          create: (_) => RecommendationBloc(
+            cycleLogRepository: cycleLogRepository,
+            symptomRepository: symptomRepository,
+            sleepRepository: sleepRepository,
+            waterRepository: waterRepository,
+            onboardingRepository: onboardingRepository,
+          )..add(const WatchRecommendations()),
         ),
         BlocProvider<NoteBloc>(
           lazy: false,

@@ -21,6 +21,7 @@ import '../../../data/models/water_log.dart';
 import '../../../data/models/weight_log.dart';
 import '../../widgets/cycle_calendar.dart';
 import '../../widgets/daily_metric_chip.dart';
+import '../../widgets/insights_card.dart';
 import '../../widgets/prediction_card.dart';
 import '../../widgets/sleep_log_sheet.dart';
 import '../../widgets/symptom_picker_sheet.dart';
@@ -126,6 +127,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             const SizedBox(height: 12),
                             const PredictionCard(),
+                            const SizedBox(height: 16),
+                            const InsightsCard(),
                             const SizedBox(height: 12),
                             _SelectedDayCard(
                               selectedDay: _selectedDay,
