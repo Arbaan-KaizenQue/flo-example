@@ -18,6 +18,7 @@ import 'data/local/entities/cycle_log_entity.dart';
 import 'data/local/entities/sleep_log_entity.dart';
 import 'data/local/entities/symptom_entry_entity.dart';
 import 'data/local/entities/water_log_entity.dart';
+import 'data/local/entities/weight_log_entity.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -252,6 +253,59 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(6, 6051000448384892218),
+    name: 'WeightLogEntity',
+    lastPropertyId: const obx_int.IdUid(7, 7025166526803428202),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 995005770312900869),
+        name: 'obxId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1275034474760185791),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(6, 8016496066330480978),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 1271478116481279679),
+        name: 'date',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2821406483801083313),
+        name: 'weightKg',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1441496533874883073),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 1734929055749688629),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 7025166526803428202),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -292,8 +346,8 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(5, 4772584187665375050),
-    lastIndexId: const obx_int.IdUid(5, 42139223971153403),
+    lastEntityId: const obx_int.IdUid(6, 6051000448384892218),
+    lastIndexId: const obx_int.IdUid(6, 8016496066330480978),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [7403333810084077382],
@@ -603,6 +657,73 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    WeightLogEntity: obx_int.EntityDefinition<WeightLogEntity>(
+      model: _entities[4],
+      toOneRelations: (WeightLogEntity object) => [],
+      toManyRelations: (WeightLogEntity object) => {},
+      getId: (WeightLogEntity object) => object.obxId,
+      setId: (WeightLogEntity object, int id) {
+        object.obxId = id;
+      },
+      objectToFB: (WeightLogEntity object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        fbb.startTable(8);
+        fbb.addInt64(0, object.obxId);
+        fbb.addOffset(1, idOffset);
+        fbb.addInt64(2, object.date.millisecondsSinceEpoch);
+        fbb.addFloat64(3, object.weightKg);
+        fbb.addInt64(4, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(5, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(6, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.obxId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final obxIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final idParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final dateParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+        );
+        final weightKgParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final object = WeightLogEntity(
+          obxId: obxIdParam,
+          id: idParam,
+          date: dateParam,
+          weightKg: weightKgParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -772,5 +893,43 @@ class SleepLogEntity_ {
   /// See [SleepLogEntity.deleted].
   static final deleted = obx.QueryBooleanProperty<SleepLogEntity>(
     _entities[3].properties[7],
+  );
+}
+
+/// [WeightLogEntity] entity fields to define ObjectBox queries.
+class WeightLogEntity_ {
+  /// See [WeightLogEntity.obxId].
+  static final obxId = obx.QueryIntegerProperty<WeightLogEntity>(
+    _entities[4].properties[0],
+  );
+
+  /// See [WeightLogEntity.id].
+  static final id = obx.QueryStringProperty<WeightLogEntity>(
+    _entities[4].properties[1],
+  );
+
+  /// See [WeightLogEntity.date].
+  static final date = obx.QueryDateProperty<WeightLogEntity>(
+    _entities[4].properties[2],
+  );
+
+  /// See [WeightLogEntity.weightKg].
+  static final weightKg = obx.QueryDoubleProperty<WeightLogEntity>(
+    _entities[4].properties[3],
+  );
+
+  /// See [WeightLogEntity.createdAt].
+  static final createdAt = obx.QueryDateProperty<WeightLogEntity>(
+    _entities[4].properties[4],
+  );
+
+  /// See [WeightLogEntity.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<WeightLogEntity>(
+    _entities[4].properties[5],
+  );
+
+  /// See [WeightLogEntity.deleted].
+  static final deleted = obx.QueryBooleanProperty<WeightLogEntity>(
+    _entities[4].properties[6],
   );
 }

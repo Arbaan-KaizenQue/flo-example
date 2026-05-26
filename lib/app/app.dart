@@ -10,12 +10,14 @@ import '../bloc/sleep/sleep_bloc.dart';
 import '../bloc/symptom/symptom_bloc.dart';
 import '../bloc/sync/sync_bloc.dart';
 import '../bloc/water/water_bloc.dart';
+import '../bloc/weight/weight_bloc.dart';
 import '../core/route/app_router.dart';
 import '../core/theme/app_theme.dart';
 import '../data/local/datasources/local_cycle_log_datasource.dart';
 import '../data/local/datasources/local_sleep_datasource.dart';
 import '../data/local/datasources/local_symptom_datasource.dart';
 import '../data/local/datasources/local_water_datasource.dart';
+import '../data/local/datasources/local_weight_datasource.dart';
 import '../data/local/objectbox_store.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/cycle_log_repository.dart';
@@ -25,6 +27,7 @@ import '../data/repositories/settings_repository.dart';
 import '../data/repositories/sleep_repository.dart';
 import '../data/repositories/symptom_repository.dart';
 import '../data/repositories/water_repository.dart';
+import '../data/repositories/weight_repository.dart';
 import '../data/services/auth_service.dart';
 import '../data/services/drive_service.dart';
 
@@ -47,6 +50,7 @@ class Application extends StatelessWidget {
     final symptomDataSource = LocalSymptomDataSource(store: store);
     final waterDataSource = LocalWaterDataSource(store: store);
     final sleepDataSource = LocalSleepDataSource(store: store);
+    final weightDataSource = LocalWeightDataSource(store: store);
 
     final authRepository = AuthRepositoryImpl(
       authService: authService,
@@ -65,6 +69,7 @@ class Application extends StatelessWidget {
         SymptomRepositoryImpl(local: symptomDataSource);
     final waterRepository = WaterRepositoryImpl(local: waterDataSource);
     final sleepRepository = SleepRepositoryImpl(local: sleepDataSource);
+    final weightRepository = WeightRepositoryImpl(local: weightDataSource);
 
     return MultiBlocProvider(
       providers: [
@@ -100,6 +105,11 @@ class Application extends StatelessWidget {
           lazy: false,
           create: (_) => SleepBloc(repository: sleepRepository)
             ..add(const WatchSleep()),
+        ),
+        BlocProvider<WeightBloc>(
+          lazy: false,
+          create: (_) => WeightBloc(repository: weightRepository)
+            ..add(const WatchWeight()),
         ),
         BlocProvider<SettingsBloc>(
           create: (_) => SettingsBloc(

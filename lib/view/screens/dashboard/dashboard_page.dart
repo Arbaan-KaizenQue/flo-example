@@ -8,18 +8,21 @@ import '../../../bloc/onboarding/onboarding_bloc.dart';
 import '../../../bloc/sleep/sleep_bloc.dart';
 import '../../../bloc/symptom/symptom_bloc.dart';
 import '../../../bloc/water/water_bloc.dart';
+import '../../../bloc/weight/weight_bloc.dart';
 import '../../../core/route/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/cycle_log.dart';
 import '../../../data/models/sleep_log.dart';
 import '../../../data/models/symptom_entry.dart';
 import '../../../data/models/water_log.dart';
+import '../../../data/models/weight_log.dart';
 import '../../widgets/cycle_calendar.dart';
 import '../../widgets/daily_metric_chip.dart';
 import '../../widgets/sleep_log_sheet.dart';
 import '../../widgets/symptom_picker_sheet.dart';
 import '../../widgets/sync_status_indicator.dart';
 import '../../widgets/water_log_sheet.dart';
+import '../../widgets/weight_log_sheet.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -70,6 +73,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   builder: (context, waterState) {
                     return BlocBuilder<SleepBloc, SleepState>(
                       builder: (context, sleepState) {
+                    return BlocBuilder<WeightBloc, WeightState>(
+                      builder: (context, weightState) {
                     return BlocBuilder<OnboardingBloc, OnboardingState>(
                       builder: (context, onboardState) {
                         final draft = onboardState.draft;
@@ -80,6 +85,9 @@ class _DashboardPageState extends State<DashboardPage> {
                             waterState.logForDay(_selectedDay);
                         final sleepLog =
                             sleepState.logForDay(_selectedDay);
+                        final weightLog =
+                            weightState.logForDay(_selectedDay) ??
+                                weightState.latest;
 
                         return ListView(
                           padding:
@@ -117,6 +125,13 @@ class _DashboardPageState extends State<DashboardPage> {
                                 date: _selectedDay,
                                 current: sleepLog,
                               ),
+                              weightLog: weightLog,
+                              onLogWeight: () => showWeightLogSheet(
+                                context,
+                                date: _selectedDay,
+                                current:
+                                    weightState.logForDay(_selectedDay),
+                              ),
                             ),
                             const SizedBox(height: 20),
                             if (draft.cycleLength.isNotEmpty ||
@@ -126,6 +141,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           ],
                         );
                       },
+                    );
+                    },
                     );
                     },
                     );
@@ -247,10 +264,12 @@ class _SelectedDayCard extends StatelessWidget {
     required this.symptomEntry,
     required this.waterLog,
     required this.sleepLog,
+    required this.weightLog,
     required this.onLogPeriod,
     required this.onLogSymptoms,
     required this.onLogWater,
     required this.onLogSleep,
+    required this.onLogWeight,
   });
 
   final DateTime selectedDay;
@@ -258,10 +277,12 @@ class _SelectedDayCard extends StatelessWidget {
   final SymptomEntry? symptomEntry;
   final WaterLog? waterLog;
   final SleepLog? sleepLog;
+  final WeightLog? weightLog;
   final VoidCallback onLogPeriod;
   final VoidCallback onLogSymptoms;
   final VoidCallback onLogWater;
   final VoidCallback onLogSleep;
+  final VoidCallback onLogWeight;
 
   @override
   Widget build(BuildContext context) {
@@ -277,6 +298,8 @@ class _SelectedDayCard extends StatelessWidget {
     final sleepValue = sleepLog == null
         ? '—'
         : '${sleepLog!.hours.toStringAsFixed(1)}h • ${sleepLog!.quality}';
+    final weightValue =
+        weightLog == null ? '—' : '${weightLog!.weightKg.toStringAsFixed(1)} kg';
 
     return Card(
       margin: EdgeInsets.zero,
@@ -347,7 +370,7 @@ class _SelectedDayCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 16),
-            // Quick-log row (weight / notes land here as each feature ships).
+            // Quick-log row (notes lands here when Feature 08 ships).
             Row(
               children: [
                 Expanded(
@@ -365,6 +388,19 @@ class _SelectedDayCard extends StatelessWidget {
                     label: 'Sleep',
                     value: sleepValue,
                     onTap: onLogSleep,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: DailyMetricChip(
+                    icon: Icons.monitor_weight_outlined,
+                    label: 'Weight',
+                    value: weightValue,
+                    onTap: onLogWeight,
                   ),
                 ),
               ],
