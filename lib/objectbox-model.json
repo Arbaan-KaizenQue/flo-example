@@ -4,27 +4,66 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "1:7403333810084077382",
-      "lastPropertyId": "8:8746823236261805982",
-      "name": "ItemEntity",
+      "id": "2:664034958412546370",
+      "lastPropertyId": "8:976934524586698139",
+      "name": "CycleLogEntity",
       "properties": [
         {
-          "id": "1:4149835881201466309",
+          "id": "1:8485465921378529533",
           "name": "obxId",
           "type": 6,
           "flags": 1
+        },
+        {
+          "id": "2:2779884426530951903",
+          "name": "id",
+          "indexId": "2:7547695987029961102",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:6589568716945658803",
+          "name": "startDate",
+          "type": 10
+        },
+        {
+          "id": "4:5090965451090407412",
+          "name": "endDate",
+          "type": 10
+        },
+        {
+          "id": "5:9125512134782442036",
+          "name": "flow",
+          "type": 9
+        },
+        {
+          "id": "6:8596248180550117629",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "7:1952039952278508279",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "8:976934524586698139",
+          "name": "deleted",
+          "type": 1
         }
       ],
       "relations": []
     }
   ],
-  "lastEntityId": "1:7403333810084077382",
-  "lastIndexId": "1:926520160856637244",
+  "lastEntityId": "2:664034958412546370",
+  "lastIndexId": "2:7547695987029961102",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
+  "retiredEntityUids": [
+    7403333810084077382
+  ],
   "retiredIndexUids": [
     926520160856637244
   ],
@@ -35,7 +74,8 @@
     5045083966737402105,
     2191130274546718055,
     4834094100790073999,
-    8746823236261805982
+    8746823236261805982,
+    4149835881201466309
   ],
   "retiredRelationUids": [],
   "version": 1

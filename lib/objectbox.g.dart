@@ -14,22 +14,65 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
-import 'data/local/entities/item_entity.dart';
+import 'data/local/entities/cycle_log_entity.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(1, 7403333810084077382),
-    name: 'ItemEntity',
-    lastPropertyId: const obx_int.IdUid(8, 8746823236261805982),
+    id: const obx_int.IdUid(2, 664034958412546370),
+    name: 'CycleLogEntity',
+    lastPropertyId: const obx_int.IdUid(8, 976934524586698139),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 4149835881201466309),
+        id: const obx_int.IdUid(1, 8485465921378529533),
         name: 'obxId',
         type: 6,
         flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2779884426530951903),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(2, 7547695987029961102),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6589568716945658803),
+        name: 'startDate',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 5090965451090407412),
+        name: 'endDate',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 9125512134782442036),
+        name: 'flow',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8596248180550117629),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 1952039952278508279),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 976934524586698139),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
       ),
     ],
     relations: <obx_int.ModelRelation>[],
@@ -75,11 +118,11 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(1, 7403333810084077382),
-    lastIndexId: const obx_int.IdUid(1, 926520160856637244),
+    lastEntityId: const obx_int.IdUid(2, 664034958412546370),
+    lastIndexId: const obx_int.IdUid(2, 7547695987029961102),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
-    retiredEntityUids: const [],
+    retiredEntityUids: const [7403333810084077382],
     retiredIndexUids: const [926520160856637244],
     retiredPropertyUids: const [
       1664351428344320907,
@@ -89,6 +132,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       2191130274546718055,
       4834094100790073999,
       8746823236261805982,
+      4149835881201466309,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -97,30 +141,77 @@ obx_int.ModelDefinition getObjectBoxModel() {
   );
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    ItemEntity: obx_int.EntityDefinition<ItemEntity>(
+    CycleLogEntity: obx_int.EntityDefinition<CycleLogEntity>(
       model: _entities[0],
-      toOneRelations: (ItemEntity object) => [],
-      toManyRelations: (ItemEntity object) => {},
-      getId: (ItemEntity object) => object.obxId,
-      setId: (ItemEntity object, int id) {
+      toOneRelations: (CycleLogEntity object) => [],
+      toManyRelations: (CycleLogEntity object) => {},
+      getId: (CycleLogEntity object) => object.obxId,
+      setId: (CycleLogEntity object, int id) {
         object.obxId = id;
       },
-      objectToFB: (ItemEntity object, fb.Builder fbb) {
+      objectToFB: (CycleLogEntity object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        final flowOffset = fbb.writeString(object.flow);
         fbb.startTable(9);
         fbb.addInt64(0, object.obxId);
+        fbb.addOffset(1, idOffset);
+        fbb.addInt64(2, object.startDate.millisecondsSinceEpoch);
+        fbb.addInt64(3, object.endDate?.millisecondsSinceEpoch);
+        fbb.addOffset(4, flowOffset);
+        fbb.addInt64(5, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(6, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(7, object.deleted);
         fbb.finish(fbb.endTable());
         return object.obxId;
       },
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
+        final endDateValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          10,
+        );
         final obxIdParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
           4,
           0,
         );
-        final object = ItemEntity(obxId: obxIdParam);
+        final idParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final startDateParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+        );
+        final endDateParam = endDateValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(endDateValue);
+        final flowParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          false,
+        );
+        final object = CycleLogEntity(
+          obxId: obxIdParam,
+          id: idParam,
+          startDate: startDateParam,
+          endDate: endDateParam,
+          flow: flowParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
 
         return object;
       },
@@ -130,10 +221,45 @@ obx_int.ModelDefinition getObjectBoxModel() {
   return obx_int.ModelDefinition(model, bindings);
 }
 
-/// [ItemEntity] entity fields to define ObjectBox queries.
-class ItemEntity_ {
-  /// See [ItemEntity.obxId].
-  static final obxId = obx.QueryIntegerProperty<ItemEntity>(
+/// [CycleLogEntity] entity fields to define ObjectBox queries.
+class CycleLogEntity_ {
+  /// See [CycleLogEntity.obxId].
+  static final obxId = obx.QueryIntegerProperty<CycleLogEntity>(
     _entities[0].properties[0],
+  );
+
+  /// See [CycleLogEntity.id].
+  static final id = obx.QueryStringProperty<CycleLogEntity>(
+    _entities[0].properties[1],
+  );
+
+  /// See [CycleLogEntity.startDate].
+  static final startDate = obx.QueryDateProperty<CycleLogEntity>(
+    _entities[0].properties[2],
+  );
+
+  /// See [CycleLogEntity.endDate].
+  static final endDate = obx.QueryDateProperty<CycleLogEntity>(
+    _entities[0].properties[3],
+  );
+
+  /// See [CycleLogEntity.flow].
+  static final flow = obx.QueryStringProperty<CycleLogEntity>(
+    _entities[0].properties[4],
+  );
+
+  /// See [CycleLogEntity.createdAt].
+  static final createdAt = obx.QueryDateProperty<CycleLogEntity>(
+    _entities[0].properties[5],
+  );
+
+  /// See [CycleLogEntity.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<CycleLogEntity>(
+    _entities[0].properties[6],
+  );
+
+  /// See [CycleLogEntity.deleted].
+  static final deleted = obx.QueryBooleanProperty<CycleLogEntity>(
+    _entities[0].properties[7],
   );
 }

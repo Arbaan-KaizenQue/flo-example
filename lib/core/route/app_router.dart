@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../../view/screens/cycle_log/cycle_log_form_page.dart';
 import '../../view/screens/dashboard/dashboard_page.dart';
 import '../../view/screens/onboarding/onboarding_page.dart';
 import '../../view/screens/privacy/privacy_page.dart';
@@ -28,6 +29,15 @@ final GoRouter appRouter = GoRouter(
       name: onboardingRoute,
       path: '/onboarding',
       builder: (_, __) => const OnboardingPage(),
+    ),
+    GoRoute(
+      name: cycleLogFormRoute,
+      path: '/cycle-log',
+      builder: (_, state) {
+        final raw = state.uri.queryParameters['date'];
+        final seed = raw == null ? null : DateTime.tryParse(raw);
+        return CycleLogFormPage(seedDate: seed);
+      },
     ),
     ShellRoute(
       builder: (context, state, child) => MainShell(child: child),

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../bloc/cycle_log/cycle_log_bloc.dart';
 import '../../../bloc/onboarding/onboarding_bloc.dart';
+import '../../../core/route/routes.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/models/cycle_log.dart';
 import '../../widgets/cycle_calendar.dart';
 import '../../widgets/sync_status_indicator.dart';
 
@@ -22,15 +26,23 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     final today = DateTime.now();
-    _focusedDay = today;
-    _selectedDay = today;
+    _focusedDay = DateTime(today.year, today.month, today.day);
+    _selectedDay = _focusedDay;
   }
 
   void _onDaySelected(DateTime selected, DateTime focused) {
     setState(() {
-      _selectedDay = selected;
+      _selectedDay = DateTime(selected.year, selected.month, selected.day);
       _focusedDay = focused;
     });
+  }
+
+  void _openLogForm(DateTime day) {
+    final isoDate = DateFormat('yyyy-MM-dd').format(day);
+    context.pushNamed(
+      cycleLogFormRoute,
+      queryParameters: {'date': isoDate},
+    );
   }
 
   @override
@@ -41,27 +53,37 @@ class _DashboardPageState extends State<DashboardPage> {
         actions: const [SyncStatusIndicator()],
       ),
       body: SafeArea(
-        child: BlocBuilder<OnboardingBloc, OnboardingState>(
-          builder: (context, state) {
-            final draft = state.draft;
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              children: [
-                _Greeting(answers: draft),
-                const SizedBox(height: 16),
-                CycleCalendar(
-                  focusedDay: _focusedDay,
-                  selectedDay: _selectedDay,
-                  onDaySelected: _onDaySelected,
-                ),
-                const SizedBox(height: 12),
-                _SelectedDayCard(selectedDay: _selectedDay),
-                const SizedBox(height: 20),
-                if (draft.cycleLength.isNotEmpty ||
-                    draft.symptoms.isNotEmpty ||
-                    draft.goals.isNotEmpty)
-                  ..._summaryCards(context, draft),
-              ],
+        child: BlocBuilder<CycleLogBloc, CycleLogState>(
+          builder: (context, logState) {
+            return BlocBuilder<OnboardingBloc, OnboardingState>(
+              builder: (context, onboardState) {
+                final draft = onboardState.draft;
+                final logForDay = logState.logForDay(_selectedDay);
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    _Greeting(),
+                    const SizedBox(height: 16),
+                    CycleCalendar(
+                      focusedDay: _focusedDay,
+                      selectedDay: _selectedDay,
+                      onDaySelected: _onDaySelected,
+                      periodDays: logState.periodDays,
+                    ),
+                    const SizedBox(height: 12),
+                    _SelectedDayCard(
+                      selectedDay: _selectedDay,
+                      logForDay: logForDay,
+                      onLogPeriod: () => _openLogForm(_selectedDay),
+                    ),
+                    const SizedBox(height: 20),
+                    if (draft.cycleLength.isNotEmpty ||
+                        draft.symptoms.isNotEmpty ||
+                        draft.goals.isNotEmpty)
+                      ..._summaryCards(context, draft),
+                  ],
+                );
+              },
             );
           },
         ),
@@ -91,18 +113,14 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
     ];
     return [
-      Text(
-        'Your profile',
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
+      Text('Your profile', style: Theme.of(context).textTheme.titleMedium),
       const SizedBox(height: 8),
       Row(
         children: tiles
             .map((d) => Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(
-                      right: tiles.last == d ? 0 : 8,
-                    ),
+                    padding:
+                        EdgeInsets.only(right: tiles.last == d ? 0 : 8),
                     child: _MiniCard(data: d),
                   ),
                 ))
@@ -113,10 +131,6 @@ class _DashboardPageState extends State<DashboardPage> {
 }
 
 class _Greeting extends StatelessWidget {
-  const _Greeting({required this.answers});
-
-  final dynamic answers;
-
   @override
   Widget build(BuildContext context) {
     final hour = DateTime.now().hour;
@@ -126,7 +140,6 @@ class _Greeting extends StatelessWidget {
             ? 'Good afternoon'
             : 'Good evening';
     final scheme = Theme.of(context).colorScheme;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -180,48 +193,76 @@ class _Greeting extends StatelessWidget {
 }
 
 class _SelectedDayCard extends StatelessWidget {
-  const _SelectedDayCard({required this.selectedDay});
+  const _SelectedDayCard({
+    required this.selectedDay,
+    required this.logForDay,
+    required this.onLogPeriod,
+  });
 
   final DateTime selectedDay;
+  final CycleLog? logForDay;
+  final VoidCallback onLogPeriod;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final hasPeriod = logForDay != null;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.calendar_today_outlined,
-                color: scheme.onPrimaryContainer,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: hasPeriod
+                        ? AppTheme.pink.withValues(alpha: 0.18)
+                        : scheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    hasPeriod
+                        ? Icons.water_drop
+                        : Icons.calendar_today_outlined,
+                    color: hasPeriod ? AppTheme.pink : scheme.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        DateFormat('EEEE, MMM d').format(selectedDay),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        hasPeriod
+                            ? 'Period • ${logForDay!.flow[0].toUpperCase()}${logForDay!.flow.substring(1)} flow'
+                            : 'No logs for this day yet.',
+                        style:
+                            Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    DateFormat('EEEE, MMM d').format(selectedDay),
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'No logs yet. Logging arrives in upcoming features.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                  ),
-                ],
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.pink,
               ),
+              icon: Icon(hasPeriod ? Icons.edit_outlined : Icons.add),
+              label: Text(hasPeriod ? 'Edit period' : 'Log period'),
+              onPressed: onLogPeriod,
             ),
           ],
         ),

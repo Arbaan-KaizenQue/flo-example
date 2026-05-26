@@ -13,3 +13,6 @@ const String onboardingRoute = 'onboarding';
 const String dashboardRoute = 'dashboard';
 const String settingsRoute = 'settings';
 const String profileRoute = 'profile';
+
+// Feature flows
+const String cycleLogFormRoute = 'cycle-log-form';
