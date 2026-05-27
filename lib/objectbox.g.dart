@@ -16,6 +16,7 @@ import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'data/local/entities/ai_insight_entity.dart';
 import 'data/local/entities/cycle_log_entity.dart';
+import 'data/local/entities/mood_entry_entity.dart';
 import 'data/local/entities/note_entity.dart';
 import 'data/local/entities/sleep_log_entity.dart';
 import 'data/local/entities/symptom_entry_entity.dart';
@@ -432,6 +433,65 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(9, 5817341075634048942),
+    name: 'MoodEntryEntity',
+    lastPropertyId: const obx_int.IdUid(8, 1071227119782359695),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2417369761280588385),
+        name: 'obxId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 3233479702736926581),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(9, 2210419238707521464),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 7497290322600840202),
+        name: 'date',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 8479270578982682173),
+        name: 'mood',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 3720676271190419956),
+        name: 'note',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 6384575650125224098),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 2997961451322637666),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 1071227119782359695),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -472,8 +532,8 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(8, 5733886383974565744),
-    lastIndexId: const obx_int.IdUid(8, 627069223178570192),
+    lastEntityId: const obx_int.IdUid(9, 5817341075634048942),
+    lastIndexId: const obx_int.IdUid(9, 2210419238707521464),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [7403333810084077382],
@@ -1006,6 +1066,77 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    MoodEntryEntity: obx_int.EntityDefinition<MoodEntryEntity>(
+      model: _entities[7],
+      toOneRelations: (MoodEntryEntity object) => [],
+      toManyRelations: (MoodEntryEntity object) => {},
+      getId: (MoodEntryEntity object) => object.obxId,
+      setId: (MoodEntryEntity object, int id) {
+        object.obxId = id;
+      },
+      objectToFB: (MoodEntryEntity object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        final moodOffset = fbb.writeString(object.mood);
+        final noteOffset = fbb.writeString(object.note);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.obxId);
+        fbb.addOffset(1, idOffset);
+        fbb.addInt64(2, object.date.millisecondsSinceEpoch);
+        fbb.addOffset(3, moodOffset);
+        fbb.addOffset(4, noteOffset);
+        fbb.addInt64(5, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(6, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(7, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.obxId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final obxIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final idParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final dateParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+        );
+        final moodParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final noteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          false,
+        );
+        final object = MoodEntryEntity(
+          obxId: obxIdParam,
+          id: idParam,
+          date: dateParam,
+          mood: moodParam,
+          note: noteParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1304,5 +1435,48 @@ class AIInsightEntity_ {
   /// See [AIInsightEntity.deleted].
   static final deleted = obx.QueryBooleanProperty<AIInsightEntity>(
     _entities[6].properties[8],
+  );
+}
+
+/// [MoodEntryEntity] entity fields to define ObjectBox queries.
+class MoodEntryEntity_ {
+  /// See [MoodEntryEntity.obxId].
+  static final obxId = obx.QueryIntegerProperty<MoodEntryEntity>(
+    _entities[7].properties[0],
+  );
+
+  /// See [MoodEntryEntity.id].
+  static final id = obx.QueryStringProperty<MoodEntryEntity>(
+    _entities[7].properties[1],
+  );
+
+  /// See [MoodEntryEntity.date].
+  static final date = obx.QueryDateProperty<MoodEntryEntity>(
+    _entities[7].properties[2],
+  );
+
+  /// See [MoodEntryEntity.mood].
+  static final mood = obx.QueryStringProperty<MoodEntryEntity>(
+    _entities[7].properties[3],
+  );
+
+  /// See [MoodEntryEntity.note].
+  static final note = obx.QueryStringProperty<MoodEntryEntity>(
+    _entities[7].properties[4],
+  );
+
+  /// See [MoodEntryEntity.createdAt].
+  static final createdAt = obx.QueryDateProperty<MoodEntryEntity>(
+    _entities[7].properties[5],
+  );
+
+  /// See [MoodEntryEntity.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<MoodEntryEntity>(
+    _entities[7].properties[6],
+  );
+
+  /// See [MoodEntryEntity.deleted].
+  static final deleted = obx.QueryBooleanProperty<MoodEntryEntity>(
+    _entities[7].properties[7],
   );
 }

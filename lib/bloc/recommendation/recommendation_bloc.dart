@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../data/models/cycle_log.dart';
+import '../../data/models/mood_entry.dart';
 import '../../data/models/onboarding_answers.dart';
 import '../../data/models/recommendation.dart';
 import '../../data/models/sleep_log.dart';
@@ -11,6 +12,7 @@ import '../../data/models/symptom_entry.dart';
 import '../../data/models/water_log.dart';
 import '../../data/repositories/ai_insight_repository.dart';
 import '../../data/repositories/cycle_log_repository.dart';
+import '../../data/repositories/mood_repository.dart';
 import '../../data/repositories/onboarding_repository.dart';
 import '../../data/repositories/recommendation_repository.dart';
 import '../../data/repositories/sleep_repository.dart';
@@ -37,6 +39,7 @@ class RecommendationBloc
     required this.symptomRepository,
     required this.sleepRepository,
     required this.waterRepository,
+    required this.moodRepository,
     required this.onboardingRepository,
   }) : super(RecommendationState(
           hasApiKey: recommendationRepository.hasApiKey,
@@ -55,6 +58,7 @@ class RecommendationBloc
   final SymptomRepository symptomRepository;
   final SleepRepository sleepRepository;
   final WaterRepository waterRepository;
+  final MoodRepository moodRepository;
   final OnboardingRepository onboardingRepository;
 
   static const Duration _debounce = Duration(seconds: 5);
@@ -63,6 +67,7 @@ class RecommendationBloc
   List<SymptomEntry> _symptoms = const [];
   List<SleepLog> _sleep = const [];
   List<WaterLog> _water = const [];
+  List<MoodEntry> _mood = const [];
   OnboardingAnswers _profile = const OnboardingAnswers();
 
   String? _lastInputHash;
@@ -73,6 +78,7 @@ class RecommendationBloc
   StreamSubscription<List<SymptomEntry>>? _symptomSub;
   StreamSubscription<List<SleepLog>>? _sleepSub;
   StreamSubscription<List<WaterLog>>? _waterSub;
+  StreamSubscription<List<MoodEntry>>? _moodSub;
   StreamSubscription<List<Recommendation>>? _storedSub;
 
   // ============================================================
@@ -107,6 +113,11 @@ class RecommendationBloc
     _waterSub?.cancel();
     _waterSub = waterRepository.watchAll().listen((logs) {
       _water = logs;
+      add(const _RecomputeRequested());
+    });
+    _moodSub?.cancel();
+    _moodSub = moodRepository.watchAll().listen((entries) {
+      _mood = entries;
       add(const _RecomputeRequested());
     });
 
@@ -153,6 +164,7 @@ class RecommendationBloc
       symptoms: _symptoms,
       sleep: _sleep,
       water: _water,
+      mood: _mood,
       profile: _profile,
     );
   }
@@ -195,6 +207,7 @@ class RecommendationBloc
         symptoms: _symptoms,
         sleep: _sleep,
         water: _water,
+        mood: _mood,
         profile: _profile,
       );
       if (res.success) {
@@ -227,6 +240,8 @@ class RecommendationBloc
       for (final s in _sleep) ...[s.id, s.updatedAt.millisecondsSinceEpoch],
       _water.length,
       for (final w in _water) ...[w.id, w.updatedAt.millisecondsSinceEpoch],
+      _mood.length,
+      for (final m in _mood) ...[m.id, m.updatedAt.millisecondsSinceEpoch],
       _profile.toJson().toString(),
     ];
     return parts.join('|').hashCode.toString();
@@ -239,6 +254,7 @@ class RecommendationBloc
     _symptomSub?.cancel();
     _sleepSub?.cancel();
     _waterSub?.cancel();
+    _moodSub?.cancel();
     _storedSub?.cancel();
     return super.close();
   }

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/cycle_log/cycle_log_bloc.dart';
+import '../bloc/mood/mood_bloc.dart';
 import '../bloc/note/note_bloc.dart';
 import '../bloc/onboarding/onboarding_bloc.dart';
 import '../bloc/prediction/prediction_bloc.dart';
@@ -18,6 +19,7 @@ import '../core/route/app_router.dart';
 import '../core/theme/app_theme.dart';
 import '../data/local/datasources/local_ai_insight_datasource.dart';
 import '../data/local/datasources/local_cycle_log_datasource.dart';
+import '../data/local/datasources/local_mood_datasource.dart';
 import '../data/local/datasources/local_note_datasource.dart';
 import '../data/local/datasources/local_sleep_datasource.dart';
 import '../data/local/datasources/local_symptom_datasource.dart';
@@ -28,6 +30,7 @@ import '../data/repositories/ai_insight_repository.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/cycle_log_repository.dart';
 import '../data/repositories/drive_repository.dart';
+import '../data/repositories/mood_repository.dart';
 import '../data/repositories/note_repository.dart';
 import '../data/repositories/onboarding_repository.dart';
 import '../data/repositories/recommendation_repository.dart';
@@ -62,6 +65,7 @@ class Application extends StatelessWidget {
     final weightDataSource = LocalWeightDataSource(store: store);
     final noteDataSource = LocalNoteDataSource(store: store);
     final aiInsightDataSource = LocalAIInsightDataSource(store: store);
+    final moodDataSource = LocalMoodDataSource(store: store);
 
     final authRepository = AuthRepositoryImpl(
       authService: authService,
@@ -87,6 +91,7 @@ class Application extends StatelessWidget {
     );
     final aiInsightRepository =
         AIInsightRepositoryImpl(local: aiInsightDataSource);
+    final moodRepository = MoodRepositoryImpl(local: moodDataSource);
 
     return MultiBlocProvider(
       providers: [
@@ -143,6 +148,7 @@ class Application extends StatelessWidget {
             symptomRepository: symptomRepository,
             sleepRepository: sleepRepository,
             waterRepository: waterRepository,
+            moodRepository: moodRepository,
             onboardingRepository: onboardingRepository,
           )..add(const WatchRecommendations()),
         ),
@@ -150,6 +156,11 @@ class Application extends StatelessWidget {
           lazy: false,
           create: (_) => NoteBloc(repository: noteRepository)
             ..add(const WatchNotes()),
+        ),
+        BlocProvider<MoodBloc>(
+          lazy: false,
+          create: (_) => MoodBloc(repository: moodRepository)
+            ..add(const WatchMood()),
         ),
         BlocProvider<SettingsBloc>(
           create: (_) => SettingsBloc(

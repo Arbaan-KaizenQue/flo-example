@@ -1,5 +1,6 @@
 import '../models/cycle_log.dart';
 import '../models/json_response.dart';
+import '../models/mood_entry.dart';
 import '../models/onboarding_answers.dart';
 import '../models/sleep_log.dart';
 import '../models/symptom_entry.dart';
@@ -9,23 +10,22 @@ import '../services/gemini_service.dart';
 abstract class RecommendationRepository {
   bool get hasApiKey;
 
-  /// Full refresh. Returns [AIInsightsBundle] in `data`.
   Future<JsonResponse> generate({
     required List<CycleLog> cycles,
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
     required List<WaterLog> water,
+    required List<MoodEntry> mood,
     required OnboardingAnswers profile,
   });
 
-  /// Streaming prose response for the Ask-AI dialog.
-  /// Throws via `Stream.onError` on auth / quota / network errors.
   Stream<String> streamFocused({
     required List<String> focusAreas,
     required List<CycleLog> cycles,
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
     required List<WaterLog> water,
+    required List<MoodEntry> mood,
     required OnboardingAnswers profile,
   });
 }
@@ -44,6 +44,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
     required List<WaterLog> water,
+    required List<MoodEntry> mood,
     required OnboardingAnswers profile,
   }) =>
       geminiService.generateInsights(
@@ -51,6 +52,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
         symptoms: symptoms,
         sleep: sleep,
         water: water,
+        mood: mood,
         profile: profile,
       );
 
@@ -61,6 +63,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
     required List<WaterLog> water,
+    required List<MoodEntry> mood,
     required OnboardingAnswers profile,
   }) =>
       geminiService.streamFocusedInsight(
@@ -69,6 +72,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
         symptoms: symptoms,
         sleep: sleep,
         water: water,
+        mood: mood,
         profile: profile,
       );
 }

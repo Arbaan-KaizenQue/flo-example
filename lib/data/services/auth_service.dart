@@ -8,15 +8,12 @@ import '../models/json_response.dart';
 /// [AuthService] — thin wrapper around [GoogleSignIn] scoped to the Drive
 /// app-data folder. Returns [JsonResponse] like every other service.
 class AuthService {
-  AuthService({GoogleSignIn? googleSignIn})
-      : _googleSignIn = googleSignIn ??
-            GoogleSignIn(scopes: const [AppConstants.driveAppDataScope]);
+  AuthService({GoogleSignIn? googleSignIn}) : _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: const [AppConstants.driveAppDataScope]);
 
   final GoogleSignIn _googleSignIn;
 
   GoogleSignInAccount? get currentUser => _googleSignIn.currentUser;
-  Stream<GoogleSignInAccount?> get onUserChanged =>
-      _googleSignIn.onCurrentUserChanged;
+  Stream<GoogleSignInAccount?> get onUserChanged => _googleSignIn.onCurrentUserChanged;
 
   Future<JsonResponse> signIn() async {
     try {
@@ -57,6 +54,5 @@ class AuthService {
     }
   }
 
-  Future<auth.AuthClient?> authenticatedClient() =>
-      _googleSignIn.authenticatedClient();
+  Future<auth.AuthClient?> authenticatedClient() => _googleSignIn.authenticatedClient();
 }

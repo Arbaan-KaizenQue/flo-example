@@ -5,6 +5,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 
 import '../models/cycle_log.dart';
 import '../models/json_response.dart';
+import '../models/mood_entry.dart';
 import '../models/onboarding_answers.dart';
 import '../models/recommendation.dart';
 import '../models/sleep_log.dart';
@@ -42,6 +43,7 @@ class GeminiService {
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
     required List<WaterLog> water,
+    required List<MoodEntry> mood,
     required OnboardingAnswers profile,
   }) async {
     if (!hasApiKey) {
@@ -68,6 +70,7 @@ class GeminiService {
         symptoms: symptoms,
         sleep: sleep,
         water: water,
+        mood: mood,
         profile: profile,
       );
 
@@ -107,6 +110,7 @@ class GeminiService {
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
     required List<WaterLog> water,
+    required List<MoodEntry> mood,
     required OnboardingAnswers profile,
   }) async* {
     if (!hasApiKey) {
@@ -131,6 +135,7 @@ class GeminiService {
       symptoms: symptoms,
       sleep: sleep,
       water: water,
+      mood: mood,
       profile: profile,
     );
     final prompt = '$userData\n\n'
@@ -231,6 +236,7 @@ Rules:
     required List<SymptomEntry> symptoms,
     required List<SleepLog> sleep,
     required List<WaterLog> water,
+    required List<MoodEntry> mood,
     required OnboardingAnswers profile,
   }) {
     final today = DateTime.now();
@@ -273,6 +279,15 @@ Rules:
             })
         .toList();
 
+    final moodJson = mood
+        .where((m) => !m.date.isBefore(last30) && !m.deleted)
+        .map((m) => {
+              'date': _isoDate(m.date),
+              'mood': m.mood,
+              if (m.note.isNotEmpty) 'note': m.note,
+            })
+        .toList();
+
     final profileJson = {
       'age_group': profile.ageGroup,
       'cycle_length_pref': profile.cycleLength,
@@ -288,6 +303,7 @@ Rules:
       'symptoms_last_30d': symptomsJson,
       'sleep_last_14d': sleepJson,
       'water_last_14d': waterJson,
+      'mood_last_30d': moodJson,
     };
 
     return 'USER DATA:\n${jsonEncode(payload)}\n\n'
