@@ -63,6 +63,7 @@ dev_dependencies:
   objectbox_generator: ^5.0.0
   mocktail: ^1.0.4
   bloc_test: ^9.1.7
+  
 
 # source_gen 3.x is pinned transitively but breaks against analyzer 8.x
 # (objectbox_generator codegen fails). Force 4.x until upstream catches up.

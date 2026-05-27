@@ -1,4 +1,4 @@
-package com.maidentech.sync_app
+package com.maidentech.aura
 
 import io.flutter.embedding.android.FlutterActivity
 
