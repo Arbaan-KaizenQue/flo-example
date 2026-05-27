@@ -43,3 +43,25 @@ class MarkOnboardingComplete extends SettingsEvent {
 class ResetOnboarding extends SettingsEvent {
   const ResetOnboarding();
 }
+
+// Feature 20 — Pregnancy Mode
+class TogglePregnancyMode extends SettingsEvent {
+  const TogglePregnancyMode({required this.enabled, this.lmp});
+
+  final bool enabled;
+
+  /// Required when enabling — the LMP date.
+  final DateTime? lmp;
+
+  @override
+  List<Object?> get props => [enabled, lmp];
+}
+
+class SetPregnancyLmp extends SettingsEvent {
+  const SetPregnancyLmp({required this.lmp});
+
+  final DateTime lmp;
+
+  @override
+  List<Object> get props => [lmp];
+}

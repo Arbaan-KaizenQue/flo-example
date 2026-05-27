@@ -15,6 +15,7 @@ import '../../data/repositories/cycle_log_repository.dart';
 import '../../data/repositories/mood_repository.dart';
 import '../../data/repositories/onboarding_repository.dart';
 import '../../data/repositories/recommendation_repository.dart';
+import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/sleep_repository.dart';
 import '../../data/repositories/symptom_repository.dart';
 import '../../data/repositories/water_repository.dart';
@@ -41,6 +42,7 @@ class RecommendationBloc
     required this.waterRepository,
     required this.moodRepository,
     required this.onboardingRepository,
+    required this.settingsRepository,
   }) : super(RecommendationState(
           hasApiKey: recommendationRepository.hasApiKey,
         )) {
@@ -60,6 +62,7 @@ class RecommendationBloc
   final WaterRepository waterRepository;
   final MoodRepository moodRepository;
   final OnboardingRepository onboardingRepository;
+  final SettingsRepository settingsRepository;
 
   static const Duration _debounce = Duration(seconds: 5);
 
@@ -166,6 +169,7 @@ class RecommendationBloc
       water: _water,
       mood: _mood,
       profile: _profile,
+      pregnancy: settingsRepository.pregnancyContext,
     );
   }
 
@@ -209,6 +213,7 @@ class RecommendationBloc
         water: _water,
         mood: _mood,
         profile: _profile,
+        pregnancy: settingsRepository.pregnancyContext,
       );
       if (res.success) {
         _lastInputHash = hash;
@@ -243,6 +248,9 @@ class RecommendationBloc
       _mood.length,
       for (final m in _mood) ...[m.id, m.updatedAt.millisecondsSinceEpoch],
       _profile.toJson().toString(),
+      // Pregnancy state changes => force regen.
+      settingsRepository.pregnancyModeEnabled,
+      settingsRepository.pregnancyLmp?.millisecondsSinceEpoch,
     ];
     return parts.join('|').hashCode.toString();
   }

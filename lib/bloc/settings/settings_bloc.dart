@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../data/models/pregnancy_context.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/drive_repository.dart';
 import '../../data/repositories/onboarding_repository.dart';
@@ -25,6 +26,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           driveEnabled: settingsRepository.driveEnabled,
           onboardingComplete: settingsRepository.onboardingComplete,
           lastSyncedAt: settingsRepository.lastSyncedAt,
+          pregnancyModeEnabled: settingsRepository.pregnancyModeEnabled,
+          pregnancyLmp: settingsRepository.pregnancyLmp,
         )) {
     on<RefreshSettings>(_onRefresh);
     on<AcceptTerms>(_onAcceptTerms);
@@ -34,6 +37,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<DeleteCloudBackup>(_onDeleteBackup);
     on<MarkOnboardingComplete>(_onMarkOnboarded);
     on<ResetOnboarding>(_onResetOnboarding);
+    on<TogglePregnancyMode>(_onTogglePregnancy);
+    on<SetPregnancyLmp>(_onSetLmp);
   }
 
   final SettingsRepository settingsRepository;
@@ -140,4 +145,46 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     await onboardingRepository.clear();
     emit(state.copyWith(onboardingComplete: false, message: 'Onboarding reset'));
   }
+
+  // ============================================================
+  // Pregnancy Mode
+  // ============================================================
+
+  FutureOr<void> _onTogglePregnancy(
+      TogglePregnancyMode event, Emitter<SettingsState> emit) async {
+    if (event.enabled) {
+      if (event.lmp == null) {
+        emit(state.copyWith(error: 'Pick your last period start date'));
+        return;
+      }
+      await settingsRepository.setPregnancyMode(true);
+      await settingsRepository.setPregnancyLmp(event.lmp);
+      emit(state.copyWith(
+        pregnancyModeEnabled: true,
+        pregnancyLmp: event.lmp,
+        message: 'Pregnancy mode enabled',
+        error: '',
+      ));
+    } else {
+      await settingsRepository.setPregnancyMode(false);
+      // Keep LMP stored so re-enabling is one tap.
+      emit(state.copyWith(
+        pregnancyModeEnabled: false,
+        message: 'Pregnancy mode disabled',
+        error: '',
+      ));
+    }
+  }
+
+  FutureOr<void> _onSetLmp(
+      SetPregnancyLmp event, Emitter<SettingsState> emit) async {
+    await settingsRepository.setPregnancyLmp(event.lmp);
+    emit(state.copyWith(
+      pregnancyLmp: event.lmp,
+      message: 'Due date updated',
+    ));
+  }
 }
+
+// Re-export for UI files that only depend on settings_bloc.dart.
+typedef PregnancyContextRe = PregnancyContext;

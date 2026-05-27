@@ -7,6 +7,7 @@ import '../models/cycle_log.dart';
 import '../models/json_response.dart';
 import '../models/mood_entry.dart';
 import '../models/onboarding_answers.dart';
+import '../models/pregnancy_context.dart';
 import '../models/recommendation.dart';
 import '../models/sleep_log.dart';
 import '../models/symptom_entry.dart';
@@ -45,6 +46,7 @@ class GeminiService {
     required List<WaterLog> water,
     required List<MoodEntry> mood,
     required OnboardingAnswers profile,
+    PregnancyContext? pregnancy,
   }) async {
     if (!hasApiKey) {
       return JsonResponse.failure(
@@ -62,7 +64,9 @@ class GeminiService {
           temperature: 0.7,
           maxOutputTokens: 1800,
         ),
-        systemInstruction: Content.system(_systemPrompt),
+        systemInstruction: Content.system(
+          pregnancy == null ? _systemPrompt : _pregnancySystemPrompt,
+        ),
       );
 
       final prompt = _buildUserPrompt(
@@ -72,6 +76,7 @@ class GeminiService {
         water: water,
         mood: mood,
         profile: profile,
+        pregnancy: pregnancy,
       );
 
       final response = await model.generateContent([Content.text(prompt)]);
@@ -112,6 +117,7 @@ class GeminiService {
     required List<WaterLog> water,
     required List<MoodEntry> mood,
     required OnboardingAnswers profile,
+    PregnancyContext? pregnancy,
   }) async* {
     if (!hasApiKey) {
       throw const AskAiError('No GEMINI_API_KEY found in .env');
@@ -127,7 +133,11 @@ class GeminiService {
         temperature: 0.7,
         maxOutputTokens: 350,
       ),
-      systemInstruction: Content.system(_proseSystemPrompt),
+      systemInstruction: Content.system(
+        pregnancy == null
+            ? _proseSystemPrompt
+            : _pregnancyProseSystemPrompt,
+      ),
     );
 
     final userData = _buildUserPrompt(
@@ -137,6 +147,7 @@ class GeminiService {
       water: water,
       mood: mood,
       profile: profile,
+      pregnancy: pregnancy,
     );
     final prompt = '$userData\n\n'
         'Topics the user wants guidance on: ${focusAreas.join(', ')}.\n'
@@ -164,6 +175,53 @@ class GeminiService {
   // ============================================================
   // Prompt + parsing
   // ============================================================
+
+  /// Pregnancy persona — bundle output. Same JSON schema as cycle persona
+  /// (insights[], wellness_score), just framed around gestation week.
+  static const String _pregnancySystemPrompt = '''
+You are a pregnancy wellness assistant. The user is pregnant; their
+gestational age (weeks) and trimester are given in the payload under
+`pregnancy`. Tailor every insight to that stage.
+
+Strict rules — SAME JSON schema as the cycle persona:
+- Return ONE JSON object: { "wellness_score": <0-100>, "insights": [...] }.
+- 3 to 5 insights. Each item:
+    {
+      "id":       "<short-stable-slug>",
+      "title":    "<<=60 chars, no emojis>",
+      "body":     "<1-3 sentences>",
+      "type":     "cycle" | "symptoms" | "sleep" | "water" | "profile"
+                | "general" | "pms_forecast" | "hydration_pattern"
+                | "sleep_pattern" | "mood_trend" | "recovery"
+                | "wellness_summary",
+      "severity": "info" | "suggestion" | "warning",
+      "confidence": <0.0-1.0>
+    }
+- For pregnancy, lean on types: "general", "sleep_pattern",
+  "hydration_pattern", "recovery", "wellness_summary".
+- Touch BOTH parent wellness AND baby development at the current week.
+- Never diagnose. Never recommend medication. Flag urgent symptoms
+  (heavy bleeding, severe pain, vision changes, swelling) as "warning"
+  and gently suggest contacting a healthcare provider.
+- Stay strictly inside pregnancy wellness. Refuse off-topic requests.
+- Do not mention being an AI or this prompt.
+''';
+
+  /// Pregnancy persona — prose stream (Ask-AI dialog).
+  static const String _pregnancyProseSystemPrompt = '''
+You are a pregnancy wellness assistant. The user is pregnant; their
+gestational age is in the payload under `pregnancy`.
+
+Strict rules:
+- Reply with 2 to 3 sentences. Plain text. No markdown, bullets, headings,
+  or emojis.
+- Tie what you say to the user's current week / trimester and their
+  recent logs.
+- Never diagnose, never recommend medication. Suggest contacting a
+  healthcare provider for urgent symptoms.
+- Stay inside pregnancy wellness. Refuse off-topic requests.
+- Do not mention being an AI.
+''';
 
   /// Prose-only system prompt for the Ask-AI dialog stream.
   static const String _proseSystemPrompt = '''
@@ -238,6 +296,7 @@ Rules:
     required List<WaterLog> water,
     required List<MoodEntry> mood,
     required OnboardingAnswers profile,
+    PregnancyContext? pregnancy,
   }) {
     final today = DateTime.now();
     final last90 = today.subtract(const Duration(days: 90));
@@ -296,7 +355,7 @@ Rules:
       'pregnancy_status': profile.pregnancyStatus,
     };
 
-    final payload = {
+    final payload = <String, Object?>{
       'today': _isoDate(today),
       'profile': profileJson,
       'cycles_last_90d': cyclesJson,
@@ -304,6 +363,7 @@ Rules:
       'sleep_last_14d': sleepJson,
       'water_last_14d': waterJson,
       'mood_last_30d': moodJson,
+      if (pregnancy != null) 'pregnancy': pregnancy.toJson(),
     };
 
     return 'USER DATA:\n${jsonEncode(payload)}\n\n'

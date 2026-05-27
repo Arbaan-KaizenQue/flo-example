@@ -72,6 +72,8 @@ class SettingsPage extends StatelessWidget {
           appBar: AppBar(title: const Text('Settings')),
           body: ListView(
             children: [
+              _PregnancyTile(state: state),
+              const Divider(),
               SwitchListTile(
                 title: const Text('Sync to Google Drive'),
                 subtitle: Text(
@@ -151,6 +153,76 @@ class SettingsPage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _PregnancyTile extends StatelessWidget {
+  const _PregnancyTile({required this.state});
+
+  final SettingsState state;
+
+  Future<DateTime?> _pickLmp(BuildContext context, DateTime? initial) {
+    final today = DateTime.now();
+    return showDatePicker(
+      context: context,
+      initialDate: initial ?? today.subtract(const Duration(days: 56)),
+      firstDate: today.subtract(const Duration(days: 280)),
+      lastDate: today,
+      helpText: 'Last menstrual period (LMP) start',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final ctx = state.pregnancyContext;
+    final lmpText = state.pregnancyLmp == null
+        ? '—'
+        : DateFormat('MMM d, yyyy').format(state.pregnancyLmp!.toLocal());
+
+    return Column(
+      children: [
+        SwitchListTile(
+          title: const Text("I'm pregnant"),
+          subtitle: Text(
+            ctx == null
+                ? 'Switch the AI persona to pregnancy guidance.'
+                : 'Week ${ctx.weeksPregnant} · '
+                    'Due ${DateFormat('MMM d').format(ctx.dueDate.toLocal())}',
+          ),
+          value: state.pregnancyModeEnabled,
+          onChanged: state.isLoading
+              ? null
+              : (v) async {
+                  if (v) {
+                    final picked = await _pickLmp(context, state.pregnancyLmp);
+                    if (picked == null) return;
+                    if (!context.mounted) return;
+                    context.read<SettingsBloc>().add(
+                          TogglePregnancyMode(enabled: true, lmp: picked),
+                        );
+                  } else {
+                    context
+                        .read<SettingsBloc>()
+                        .add(const TogglePregnancyMode(enabled: false));
+                  }
+                },
+        ),
+        if (state.pregnancyModeEnabled)
+          ListTile(
+            leading: Icon(Icons.event_outlined, color: scheme.primary),
+            title: const Text('Last period start (LMP)'),
+            subtitle: Text(lmpText),
+            trailing: const Icon(Icons.edit_calendar_outlined),
+            onTap: () async {
+              final picked = await _pickLmp(context, state.pregnancyLmp);
+              if (picked == null) return;
+              if (!context.mounted) return;
+              context.read<SettingsBloc>().add(SetPregnancyLmp(lmp: picked));
+            },
+          ),
+      ],
     );
   }
 }

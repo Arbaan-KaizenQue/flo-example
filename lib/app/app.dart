@@ -150,6 +150,7 @@ class Application extends StatelessWidget {
             waterRepository: waterRepository,
             moodRepository: moodRepository,
             onboardingRepository: onboardingRepository,
+            settingsRepository: settingsRepository,
           )..add(const WatchRecommendations()),
         ),
         BlocProvider<NoteBloc>(

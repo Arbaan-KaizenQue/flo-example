@@ -23,6 +23,7 @@ import '../../widgets/ask_ai_dialog.dart';
 import '../../widgets/cycle_calendar.dart';
 import '../../widgets/daily_metric_chip.dart';
 import '../../widgets/insights_card.dart';
+import '../../widgets/pregnancy_banner.dart';
 import '../../widgets/prediction_card.dart';
 import '../../widgets/sleep_log_sheet.dart';
 import '../../widgets/symptom_picker_sheet.dart';
@@ -117,7 +118,9 @@ class _DashboardPageState extends State<DashboardPage> {
                               const EdgeInsets.fromLTRB(16, 8, 16, 24),
                           children: [
                             _Greeting(),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
+                            const PregnancyBanner(),
+                            const SizedBox(height: 12),
                             BlocBuilder<PredictionBloc, PredictionState>(
                               builder: (context, predictionState) {
                                 return CycleCalendar(

@@ -2,6 +2,7 @@ import '../models/cycle_log.dart';
 import '../models/json_response.dart';
 import '../models/mood_entry.dart';
 import '../models/onboarding_answers.dart';
+import '../models/pregnancy_context.dart';
 import '../models/sleep_log.dart';
 import '../models/symptom_entry.dart';
 import '../models/water_log.dart';
@@ -17,6 +18,7 @@ abstract class RecommendationRepository {
     required List<WaterLog> water,
     required List<MoodEntry> mood,
     required OnboardingAnswers profile,
+    PregnancyContext? pregnancy,
   });
 
   Stream<String> streamFocused({
@@ -27,6 +29,7 @@ abstract class RecommendationRepository {
     required List<WaterLog> water,
     required List<MoodEntry> mood,
     required OnboardingAnswers profile,
+    PregnancyContext? pregnancy,
   });
 }
 
@@ -46,6 +49,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     required List<WaterLog> water,
     required List<MoodEntry> mood,
     required OnboardingAnswers profile,
+    PregnancyContext? pregnancy,
   }) =>
       geminiService.generateInsights(
         cycles: cycles,
@@ -54,6 +58,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
         water: water,
         mood: mood,
         profile: profile,
+        pregnancy: pregnancy,
       );
 
   @override
@@ -65,6 +70,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     required List<WaterLog> water,
     required List<MoodEntry> mood,
     required OnboardingAnswers profile,
+    PregnancyContext? pregnancy,
   }) =>
       geminiService.streamFocusedInsight(
         focusAreas: focusAreas,
@@ -74,5 +80,6 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
         water: water,
         mood: mood,
         profile: profile,
+        pregnancy: pregnancy,
       );
 }
