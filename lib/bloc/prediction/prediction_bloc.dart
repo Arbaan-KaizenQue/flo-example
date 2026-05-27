@@ -102,10 +102,33 @@ class PredictionBloc extends Bloc<PredictionEvent, PredictionState> {
     final fertileStart = ovulation.subtract(const Duration(days: 5));
     final fertileEnd = ovulation.add(const Duration(days: 1));
 
+    // Feature 22 — Hormonal Intelligence:
+    //  PMS window = 5 days immediately before the next predicted period.
+    final pmsStart = nextStart.subtract(const Duration(days: 5));
+    final pmsEnd = nextStart.subtract(const Duration(days: 1));
+
+    // Approximate last-period end (for phase computation).
+    final lastEnd = lastLog.endDate == null
+        ? lastStart.add(const Duration(days: 4))
+        : _dayOnly(lastLog.endDate!);
+
+    // Current phase derivation.
+    CyclePhase phase = CyclePhase.unknown;
+    if (!today.isBefore(lastStart) && !today.isAfter(lastEnd)) {
+      phase = CyclePhase.menstrual;
+    } else if (!today.isBefore(fertileStart) && !today.isAfter(fertileEnd)) {
+      phase = CyclePhase.ovulatory;
+    } else if (today.isAfter(lastEnd) && today.isBefore(fertileStart)) {
+      phase = CyclePhase.follicular;
+    } else if (today.isAfter(fertileEnd) && today.isBefore(nextStart)) {
+      phase = CyclePhase.luteal;
+    }
+
     return PredictionState(
       isLoading: false,
       averageCycleLength: avg,
       lastPeriodStart: lastStart,
+      lastPeriodEnd: lastEnd,
       nextPredictedPeriodStart: nextStart,
       nextPredictedPeriodEnd: nextEnd,
       daysUntilNextPeriod: daysUntilNext,
@@ -113,6 +136,9 @@ class PredictionBloc extends Bloc<PredictionEvent, PredictionState> {
       ovulationDay: ovulation,
       fertileWindowStart: fertileStart,
       fertileWindowEnd: fertileEnd,
+      currentPhase: phase,
+      pmsWindowStart: pmsStart,
+      pmsWindowEnd: pmsEnd,
     );
   }
 

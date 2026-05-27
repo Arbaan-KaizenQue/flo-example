@@ -26,6 +26,8 @@ import '../../widgets/cycle_calendar.dart';
 import '../../widgets/daily_metric_chip.dart';
 import '../../widgets/insights_card.dart';
 import '../../widgets/mood_picker_sheet.dart';
+import '../../widgets/phase_intelligence_card.dart';
+import '../../widgets/pms_prediction_card.dart';
 import '../../widgets/pregnancy_banner.dart';
 import '../../widgets/prediction_card.dart';
 import '../../widgets/sleep_log_sheet.dart';
@@ -144,6 +146,10 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             const SizedBox(height: 12),
                             const PredictionCard(),
+                            const SizedBox(height: 10),
+                            const PhaseIntelligenceCard(),
+                            const SizedBox(height: 10),
+                            const PmsPredictionCard(),
                             const SizedBox(height: 16),
                             const InsightsCard(),
                             const SizedBox(height: 12),

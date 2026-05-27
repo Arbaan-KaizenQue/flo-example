@@ -1,5 +1,15 @@
 part of 'prediction_bloc.dart';
 
+/// Phase of the cycle the user is in **right now**.
+/// Derived from `dayOfCycle` relative to ovulation + next period start.
+enum CyclePhase {
+  unknown,
+  menstrual,   // day 1 .. last period day
+  follicular,  // post-period .. pre-fertile
+  ovulatory,   // fertile window
+  luteal,      // post-ovulation .. day before next period
+}
+
 class PredictionState extends Equatable {
   const PredictionState({
     this.isLoading = false,
@@ -7,6 +17,7 @@ class PredictionState extends Equatable {
     this.message = '',
     this.averageCycleLength = 28,
     this.lastPeriodStart,
+    this.lastPeriodEnd,
     this.nextPredictedPeriodStart,
     this.nextPredictedPeriodEnd,
     this.daysUntilNextPeriod,
@@ -14,6 +25,9 @@ class PredictionState extends Equatable {
     this.ovulationDay,
     this.fertileWindowStart,
     this.fertileWindowEnd,
+    this.currentPhase = CyclePhase.unknown,
+    this.pmsWindowStart,
+    this.pmsWindowEnd,
   });
 
   final bool isLoading;
@@ -22,6 +36,7 @@ class PredictionState extends Equatable {
 
   final int averageCycleLength;
   final DateTime? lastPeriodStart;
+  final DateTime? lastPeriodEnd;
   final DateTime? nextPredictedPeriodStart;
   final DateTime? nextPredictedPeriodEnd;
 
@@ -36,7 +51,48 @@ class PredictionState extends Equatable {
   final DateTime? fertileWindowStart;
   final DateTime? fertileWindowEnd;
 
+  // Feature 22 — Hormonal Intelligence
+  /// Current cycle phase.
+  final CyclePhase currentPhase;
+
+  /// PMS window = the 5 days immediately before [nextPredictedPeriodStart].
+  final DateTime? pmsWindowStart;
+  final DateTime? pmsWindowEnd;
+
   bool get hasPrediction => nextPredictedPeriodStart != null;
+
+  /// True if today falls inside the PMS window.
+  bool get isInPmsWindow {
+    final start = pmsWindowStart;
+    final end = pmsWindowEnd;
+    if (start == null || end == null) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return !today.isBefore(start) && !today.isAfter(end);
+  }
+
+  /// Days until PMS window starts (negative if already in or past).
+  int? get daysUntilPms {
+    final start = pmsWindowStart;
+    if (start == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return start.difference(today).inDays;
+  }
+
+  /// Set of day-only DateTimes inside the PMS window.
+  Set<DateTime> get pmsWindowDays {
+    final start = pmsWindowStart;
+    final end = pmsWindowEnd;
+    if (start == null || end == null) return const {};
+    final out = <DateTime>{};
+    for (var d = start;
+        !d.isAfter(end);
+        d = d.add(const Duration(days: 1))) {
+      out.add(d);
+    }
+    return out;
+  }
 
   /// Set of day-only DateTimes that should be rendered as predicted-period
   /// days on the calendar (Feature 09).
@@ -83,6 +139,7 @@ class PredictionState extends Equatable {
     String? message,
     int? averageCycleLength,
     DateTime? lastPeriodStart,
+    DateTime? lastPeriodEnd,
     DateTime? nextPredictedPeriodStart,
     DateTime? nextPredictedPeriodEnd,
     int? daysUntilNextPeriod,
@@ -90,6 +147,9 @@ class PredictionState extends Equatable {
     DateTime? ovulationDay,
     DateTime? fertileWindowStart,
     DateTime? fertileWindowEnd,
+    CyclePhase? currentPhase,
+    DateTime? pmsWindowStart,
+    DateTime? pmsWindowEnd,
   }) =>
       PredictionState(
         isLoading: isLoading ?? this.isLoading,
@@ -97,6 +157,7 @@ class PredictionState extends Equatable {
         message: message ?? this.message,
         averageCycleLength: averageCycleLength ?? this.averageCycleLength,
         lastPeriodStart: lastPeriodStart ?? this.lastPeriodStart,
+        lastPeriodEnd: lastPeriodEnd ?? this.lastPeriodEnd,
         nextPredictedPeriodStart:
             nextPredictedPeriodStart ?? this.nextPredictedPeriodStart,
         nextPredictedPeriodEnd:
@@ -107,6 +168,9 @@ class PredictionState extends Equatable {
         ovulationDay: ovulationDay ?? this.ovulationDay,
         fertileWindowStart: fertileWindowStart ?? this.fertileWindowStart,
         fertileWindowEnd: fertileWindowEnd ?? this.fertileWindowEnd,
+        currentPhase: currentPhase ?? this.currentPhase,
+        pmsWindowStart: pmsWindowStart ?? this.pmsWindowStart,
+        pmsWindowEnd: pmsWindowEnd ?? this.pmsWindowEnd,
       );
 
   @override
@@ -116,6 +180,7 @@ class PredictionState extends Equatable {
         message,
         averageCycleLength,
         lastPeriodStart,
+        lastPeriodEnd,
         nextPredictedPeriodStart,
         nextPredictedPeriodEnd,
         daysUntilNextPeriod,
@@ -123,5 +188,8 @@ class PredictionState extends Equatable {
         ovulationDay,
         fertileWindowStart,
         fertileWindowEnd,
+        currentPhase,
+        pmsWindowStart,
+        pmsWindowEnd,
       ];
 }
