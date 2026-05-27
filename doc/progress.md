@@ -486,18 +486,16 @@ pinned 4.0.3) because the 4.x generator is incompatible with current analyzer.
 
 ## 13. Known limitations / open work
 
-1. **Drive backup doesn't include entity data yet.** `BackupSnapshot` is
-   metadata-only. To wire actual data into the sync, extend
-   `BackupSnapshot.toJson/fromJson` to include each entity collection,
-   then update `DriveRepository.performSync()` to read from each repo's
-   `getAllIncludingDeleted()` and merge per-collection. This is the
-   official scope of unbuilt Features 14 (Export/Backup) and 16
-   (Multi-Device Sync).
+1. ~~**Drive backup doesn't include entity data yet.**~~ ✅ FIXED in
+   the `feat/full_sync_and_welcome_auth` branch. `BackupSnapshot` v2 now
+   carries every entity collection and `DriveRepository.performSync()`
+   does per-collection LWW merge.
 2. **Background sync triggers** (debounce-on-write, connectivity-restored,
    lifecycle-resumed) are NOT wired. Currently only app launch + manual.
 3. **No tests** in the new structure. Original sync_app had merge-logic
    tests; deleted during the restructure.
-4. **Features 12, 13, 15, 17, 18, 19** from the spec are not built.
+4. **Features 12, 13, 15, 17, 18, 19** from the original spec are not
+   built. See spec MDs at `doc/features/feature_*.md`.
 5. **Mood Coach is implicit** — mood data is fed to Gemini but there's
    no dedicated "mood coach" UI; insights just naturally include mood
    patterns under the existing `moodTrend` recommendation type.
@@ -509,7 +507,16 @@ pinned 4.0.3) because the 4.x generator is incompatible with current analyzer.
    removed without care, the app will crash on launch with "Incoming
    entity ID does not match existing UID". Use `@Property(uid: <old>)`
    on renames to keep UIDs stable.
-8. **Old original Phase plan partially abandoned.** The first sync_app
+8. **30+ Symptom Framework (Aura PDF) not yet implemented.** Specs
+   exist at `doc/features/feature_22..33.md`. Priority order to build:
+   - feature_23 — full 33-symptom catalogue with grouping
+   - feature_29 — per-symptom severity & timing (unlocks 30 + 31)
+   - feature_30 — PMDD detection
+   - feature_31 — cycle irregularity detection
+   - feature_27 — privacy & security (AES-256, biometric, GDPR)
+   - feature_32 — long-term wellness reports
+   - feature_33 — anonymous AI hygiene + rule-engine fallback
+9. **Old original Phase plan partially abandoned.** The first sync_app
    plan had 8 phases (ObjectBox local layer → tests). All initially
    built, then the project pivoted to Flo-style health tracking with a
    new CLAUDE.md structure. The new structure was rebuilt from scratch;
