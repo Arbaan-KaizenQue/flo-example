@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../bloc/cycle_log/cycle_log_bloc.dart';
+import '../../../bloc/mood/mood_bloc.dart';
 import '../../../bloc/note/note_bloc.dart';
 import '../../../bloc/onboarding/onboarding_bloc.dart';
 import '../../../bloc/prediction/prediction_bloc.dart';
@@ -14,6 +15,7 @@ import '../../../bloc/weight/weight_bloc.dart';
 import '../../../core/route/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/cycle_log.dart';
+import '../../../data/models/mood_entry.dart';
 import '../../../data/models/note.dart';
 import '../../../data/models/sleep_log.dart';
 import '../../../data/models/symptom_entry.dart';
@@ -23,6 +25,7 @@ import '../../widgets/ask_ai_dialog.dart';
 import '../../widgets/cycle_calendar.dart';
 import '../../widgets/daily_metric_chip.dart';
 import '../../widgets/insights_card.dart';
+import '../../widgets/mood_picker_sheet.dart';
 import '../../widgets/pregnancy_banner.dart';
 import '../../widgets/prediction_card.dart';
 import '../../widgets/sleep_log_sheet.dart';
@@ -98,6 +101,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       builder: (context, weightState) {
                     return BlocBuilder<NoteBloc, NoteState>(
                       builder: (context, noteState) {
+                    return BlocBuilder<MoodBloc, MoodState>(
+                      builder: (context, moodState) {
                     return BlocBuilder<OnboardingBloc, OnboardingState>(
                       builder: (context, onboardState) {
                         final draft = onboardState.draft;
@@ -112,6 +117,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             weightState.weightOnOrBefore(_selectedDay);
                         final noteForDay =
                             noteState.noteForDay(_selectedDay);
+                        final moodForDay =
+                            moodState.entryForDay(_selectedDay);
 
                         return ListView(
                           padding:
@@ -172,6 +179,12 @@ class _DashboardPageState extends State<DashboardPage> {
                               noteForDay: noteForDay,
                               onOpenNote: () =>
                                   _openNoteEditor(_selectedDay),
+                              moodForDay: moodForDay,
+                              onLogMood: () => showMoodPickerSheet(
+                                context,
+                                date: _selectedDay,
+                                current: moodForDay,
+                              ),
                             ),
                             const SizedBox(height: 20),
                             if (draft.cycleLength.isNotEmpty ||
@@ -181,6 +194,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           ],
                         );
                       },
+                    );
+                    },
                     );
                     },
                     );
@@ -308,12 +323,14 @@ class _SelectedDayCard extends StatelessWidget {
     required this.sleepLog,
     required this.weightLog,
     required this.noteForDay,
+    required this.moodForDay,
     required this.onLogPeriod,
     required this.onLogSymptoms,
     required this.onLogWater,
     required this.onLogSleep,
     required this.onLogWeight,
     required this.onOpenNote,
+    required this.onLogMood,
   });
 
   final DateTime selectedDay;
@@ -323,12 +340,14 @@ class _SelectedDayCard extends StatelessWidget {
   final SleepLog? sleepLog;
   final WeightLog? weightLog;
   final Note? noteForDay;
+  final MoodEntry? moodForDay;
   final VoidCallback onLogPeriod;
   final VoidCallback onLogSymptoms;
   final VoidCallback onLogWater;
   final VoidCallback onLogSleep;
   final VoidCallback onLogWeight;
   final VoidCallback onOpenNote;
+  final VoidCallback onLogMood;
 
   @override
   Widget build(BuildContext context) {
@@ -351,6 +370,11 @@ class _SelectedDayCard extends StatelessWidget {
         : (noteForDay!.title.isNotEmpty
             ? noteForDay!.title
             : noteForDay!.body);
+    final moodOpt =
+        moodForDay == null ? null : moodOptionFor(moodForDay!.mood);
+    final moodValue = moodOpt == null
+        ? 'Tap to log'
+        : '${moodOpt.emoji}  ${moodOpt.label}';
 
     return Card(
       margin: EdgeInsets.zero,
@@ -461,6 +485,20 @@ class _SelectedDayCard extends StatelessWidget {
                     label: 'Notes',
                     value: noteValue,
                     onTap: onOpenNote,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: DailyMetricChip(
+                    icon: Icons.sentiment_satisfied_outlined,
+                    label: 'Mood',
+                    value: moodValue,
+                    accent: moodOpt?.color,
+                    onTap: onLogMood,
                   ),
                 ),
               ],
