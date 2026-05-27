@@ -36,6 +36,18 @@ class LocalCycleLogDataSource {
     return _box.put(entity);
   }
 
+  List<CycleLogEntity> getAllIncludingDeleted() => _box.getAll();
+
+  void replaceAll(List<CycleLogEntity> items) {
+    store.store.runInTransaction(TxMode.write, () {
+      _box.removeAll();
+      for (final i in items) {
+        i.obxId = 0;
+      }
+      _box.putMany(items);
+    });
+  }
+
   Stream<List<CycleLogEntity>> watchAll() {
     final q = _box
         .query(CycleLogEntity_.deleted.equals(false))

@@ -71,11 +71,6 @@ class Application extends StatelessWidget {
       authService: authService,
       prefs: prefs,
     );
-    final driveRepository = DriveRepositoryImpl(
-      driveService: driveService,
-      authService: authService,
-      prefs: prefs,
-    );
     final settingsRepository = SettingsRepositoryImpl(prefs: prefs);
     final onboardingRepository = OnboardingRepositoryImpl(prefs: prefs);
     final cycleLogRepository =
@@ -86,12 +81,25 @@ class Application extends StatelessWidget {
     final sleepRepository = SleepRepositoryImpl(local: sleepDataSource);
     final weightRepository = WeightRepositoryImpl(local: weightDataSource);
     final noteRepository = NoteRepositoryImpl(local: noteDataSource);
+    final moodRepository = MoodRepositoryImpl(local: moodDataSource);
     final recommendationRepository = RecommendationRepositoryImpl(
       geminiService: GeminiService(),
     );
     final aiInsightRepository =
         AIInsightRepositoryImpl(local: aiInsightDataSource);
-    final moodRepository = MoodRepositoryImpl(local: moodDataSource);
+    final driveRepository = DriveRepositoryImpl(
+      driveService: driveService,
+      authService: authService,
+      prefs: prefs,
+      cycleLogRepo: cycleLogRepository,
+      symptomRepo: symptomRepository,
+      waterRepo: waterRepository,
+      sleepRepo: sleepRepository,
+      weightRepo: weightRepository,
+      noteRepo: noteRepository,
+      moodRepo: moodRepository,
+      onboardingRepo: onboardingRepository,
+    );
 
     return MultiBlocProvider(
       providers: [

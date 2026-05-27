@@ -9,6 +9,8 @@ import '../models/water_log.dart';
 /// `setGoal` updates the goal for the day's log.
 abstract class WaterRepository {
   Stream<List<WaterLog>> watchAll();
+  List<WaterLog> getAllIncludingDeleted();
+  Future<JsonResponse> replaceAll(List<WaterLog> items);
   Future<JsonResponse> addAmount({required DateTime date, required int ml});
   Future<JsonResponse> setAmount({required DateTime date, required int ml});
   Future<JsonResponse> setGoal({required DateTime date, required int goalMl});
@@ -54,9 +56,33 @@ class WaterRepositoryImpl implements WaterRepository {
     );
   }
 
+  WaterLogEntity _toEntity(WaterLog m) => WaterLogEntity(
+        id: m.id,
+        date: m.date,
+        amountMl: m.amountMl,
+        goalMl: m.goalMl,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deleted: m.deleted,
+      );
+
   @override
   Stream<List<WaterLog>> watchAll() =>
       local.watchAll().map((list) => list.map(_toModel).toList());
+
+  @override
+  List<WaterLog> getAllIncludingDeleted() =>
+      local.getAllIncludingDeleted().map(_toModel).toList();
+
+  @override
+  Future<JsonResponse> replaceAll(List<WaterLog> items) async {
+    try {
+      local.replaceAll(items.map(_toEntity).toList());
+      return JsonResponse.success(message: 'Replaced ${items.length} items');
+    } catch (e) {
+      return JsonResponse.failure(message: '$e');
+    }
+  }
 
   @override
   Future<JsonResponse> addAmount({

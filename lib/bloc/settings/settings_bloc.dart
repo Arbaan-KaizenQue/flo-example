@@ -66,6 +66,26 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(state.copyWith(welcomeSeen: true));
   }
 
+  /// Welcome-flow helper. Call this after Google sign-in succeeds on the
+  /// welcome page. Pulls from Drive, applies any backup to local, and
+  /// flips the routing flags if data was restored.
+  ///
+  /// Returns `true` if existing backup data was restored (caller should
+  /// route to dashboard); `false` means no backup found (caller should
+  /// route into the privacy / onboarding flow).
+  Future<bool> attemptRestoreOnSignIn() async {
+    final res = await driveRepository.restoreOnSignIn();
+    final restored = res.success && res.data == true;
+    await settingsRepository.setWelcomeSeen(true);
+    await settingsRepository.setDriveEnabled(true);
+    if (restored) {
+      await settingsRepository.setAcceptedTerms(true);
+      await settingsRepository.setOnboardingComplete(true);
+    }
+    add(const RefreshSettings());
+    return restored;
+  }
+
   FutureOr<void> _onAcceptTerms(
       AcceptTerms event, Emitter<SettingsState> emit) async {
     await settingsRepository.setAcceptedTerms(true);

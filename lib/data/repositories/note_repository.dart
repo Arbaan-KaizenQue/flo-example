@@ -7,6 +7,8 @@ import '../models/note.dart';
 
 abstract class NoteRepository {
   Stream<List<Note>> watchAll();
+  List<Note> getAllIncludingDeleted();
+  Future<JsonResponse> replaceAll(List<Note> items);
   Future<JsonResponse> saveForDay({
     required DateTime date,
     required String title,
@@ -42,9 +44,33 @@ class NoteRepositoryImpl implements NoteRepository {
     return null;
   }
 
+  NoteEntity _toEntity(Note m) => NoteEntity(
+        id: m.id,
+        date: m.date,
+        title: m.title,
+        body: m.body,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deleted: m.deleted,
+      );
+
   @override
   Stream<List<Note>> watchAll() =>
       local.watchAll().map((list) => list.map(_toModel).toList());
+
+  @override
+  List<Note> getAllIncludingDeleted() =>
+      local.getAllIncludingDeleted().map(_toModel).toList();
+
+  @override
+  Future<JsonResponse> replaceAll(List<Note> items) async {
+    try {
+      local.replaceAll(items.map(_toEntity).toList());
+      return JsonResponse.success(message: 'Replaced ${items.length} items');
+    } catch (e) {
+      return JsonResponse.failure(message: '$e');
+    }
+  }
 
   @override
   Future<JsonResponse> saveForDay({

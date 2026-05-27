@@ -36,6 +36,18 @@ class LocalWaterDataSource {
     return _box.put(entity);
   }
 
+  List<WaterLogEntity> getAllIncludingDeleted() => _box.getAll();
+
+  void replaceAll(List<WaterLogEntity> items) {
+    store.store.runInTransaction(TxMode.write, () {
+      _box.removeAll();
+      for (final i in items) {
+        i.obxId = 0;
+      }
+      _box.putMany(items);
+    });
+  }
+
   Stream<List<WaterLogEntity>> watchAll() {
     final q = _box
         .query(WaterLogEntity_.deleted.equals(false))

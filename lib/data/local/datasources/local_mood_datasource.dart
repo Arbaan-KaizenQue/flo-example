@@ -36,6 +36,18 @@ class LocalMoodDataSource {
     return _box.put(e);
   }
 
+  List<MoodEntryEntity> getAllIncludingDeleted() => _box.getAll();
+
+  void replaceAll(List<MoodEntryEntity> items) {
+    store.store.runInTransaction(TxMode.write, () {
+      _box.removeAll();
+      for (final i in items) {
+        i.obxId = 0;
+      }
+      _box.putMany(items);
+    });
+  }
+
   Stream<List<MoodEntryEntity>> watchAll() {
     final q = _box
         .query(MoodEntryEntity_.deleted.equals(false))

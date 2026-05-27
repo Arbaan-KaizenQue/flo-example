@@ -26,6 +26,7 @@ class AuthService {
       }
       return JsonResponse.success(message: 'Signed in', data: user);
     } catch (e) {
+      print('AuthService.signIn error: $e');
       return JsonResponse.failure(message: 'Sign-in failed: $e');
     }
   }

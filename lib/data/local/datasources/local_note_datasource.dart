@@ -36,6 +36,18 @@ class LocalNoteDataSource {
     return _box.put(entity);
   }
 
+  List<NoteEntity> getAllIncludingDeleted() => _box.getAll();
+
+  void replaceAll(List<NoteEntity> items) {
+    store.store.runInTransaction(TxMode.write, () {
+      _box.removeAll();
+      for (final i in items) {
+        i.obxId = 0;
+      }
+      _box.putMany(items);
+    });
+  }
+
   Stream<List<NoteEntity>> watchAll() {
     final q = _box
         .query(NoteEntity_.deleted.equals(false))

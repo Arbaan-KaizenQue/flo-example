@@ -10,6 +10,7 @@ import '../models/json_response.dart';
 abstract class CycleLogRepository {
   Stream<List<CycleLog>> watchAll();
   Future<JsonResponse> getAll();
+  List<CycleLog> getAllIncludingDeleted();
   Future<JsonResponse> getById(String id);
   Future<JsonResponse> create({
     required DateTime startDate,
@@ -18,6 +19,7 @@ abstract class CycleLogRepository {
   });
   Future<JsonResponse> update(CycleLog log);
   Future<JsonResponse> softDelete(String id);
+  Future<JsonResponse> replaceAll(List<CycleLog> items);
 }
 
 class CycleLogRepositoryImpl implements CycleLogRepository {
@@ -57,6 +59,20 @@ class CycleLogRepositoryImpl implements CycleLogRepository {
       return JsonResponse.success(
         data: local.getAll().map(_toModel).toList(),
       );
+    } catch (e) {
+      return JsonResponse.failure(message: '$e');
+    }
+  }
+
+  @override
+  List<CycleLog> getAllIncludingDeleted() =>
+      local.getAllIncludingDeleted().map(_toModel).toList();
+
+  @override
+  Future<JsonResponse> replaceAll(List<CycleLog> items) async {
+    try {
+      local.replaceAll(items.map(_toEntity).toList());
+      return JsonResponse.success(message: 'Replaced ${items.length} items');
     } catch (e) {
       return JsonResponse.failure(message: '$e');
     }

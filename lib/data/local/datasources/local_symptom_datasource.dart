@@ -36,6 +36,18 @@ class LocalSymptomDataSource {
     return _box.put(entity);
   }
 
+  List<SymptomEntryEntity> getAllIncludingDeleted() => _box.getAll();
+
+  void replaceAll(List<SymptomEntryEntity> items) {
+    store.store.runInTransaction(TxMode.write, () {
+      _box.removeAll();
+      for (final i in items) {
+        i.obxId = 0;
+      }
+      _box.putMany(items);
+    });
+  }
+
   Stream<List<SymptomEntryEntity>> watchAll() {
     final q = _box
         .query(SymptomEntryEntity_.deleted.equals(false))

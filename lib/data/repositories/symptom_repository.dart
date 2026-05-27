@@ -10,11 +10,13 @@ import '../models/symptom_entry.dart';
 /// create a new one. Passing an empty list soft-deletes the entry.
 abstract class SymptomRepository {
   Stream<List<SymptomEntry>> watchAll();
+  List<SymptomEntry> getAllIncludingDeleted();
   Future<JsonResponse> saveForDay({
     required DateTime date,
     required List<String> symptoms,
   });
   Future<JsonResponse> softDeleteForDay(DateTime date);
+  Future<JsonResponse> replaceAll(List<SymptomEntry> items);
 }
 
 class SymptomRepositoryImpl implements SymptomRepository {
@@ -46,9 +48,32 @@ class SymptomRepositoryImpl implements SymptomRepository {
     return null;
   }
 
+  SymptomEntryEntity _toEntity(SymptomEntry m) => SymptomEntryEntity(
+        id: m.id,
+        date: m.date,
+        symptomsCsv: m.symptoms.join('|'),
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deleted: m.deleted,
+      );
+
   @override
   Stream<List<SymptomEntry>> watchAll() =>
       local.watchAll().map((list) => list.map(_toModel).toList());
+
+  @override
+  List<SymptomEntry> getAllIncludingDeleted() =>
+      local.getAllIncludingDeleted().map(_toModel).toList();
+
+  @override
+  Future<JsonResponse> replaceAll(List<SymptomEntry> items) async {
+    try {
+      local.replaceAll(items.map(_toEntity).toList());
+      return JsonResponse.success(message: 'Replaced ${items.length} items');
+    } catch (e) {
+      return JsonResponse.failure(message: '$e');
+    }
+  }
 
   @override
   Future<JsonResponse> saveForDay({

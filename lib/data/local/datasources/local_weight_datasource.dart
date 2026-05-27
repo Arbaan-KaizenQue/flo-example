@@ -36,6 +36,18 @@ class LocalWeightDataSource {
     return _box.put(entity);
   }
 
+  List<WeightLogEntity> getAllIncludingDeleted() => _box.getAll();
+
+  void replaceAll(List<WeightLogEntity> items) {
+    store.store.runInTransaction(TxMode.write, () {
+      _box.removeAll();
+      for (final i in items) {
+        i.obxId = 0;
+      }
+      _box.putMany(items);
+    });
+  }
+
   Stream<List<WeightLogEntity>> watchAll() {
     final q = _box
         .query(WeightLogEntity_.deleted.equals(false))

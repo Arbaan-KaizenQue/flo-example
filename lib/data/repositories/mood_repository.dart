@@ -7,6 +7,8 @@ import '../models/mood_entry.dart';
 
 abstract class MoodRepository {
   Stream<List<MoodEntry>> watchAll();
+  List<MoodEntry> getAllIncludingDeleted();
+  Future<JsonResponse> replaceAll(List<MoodEntry> items);
   Future<JsonResponse> saveForDay({
     required DateTime date,
     required String mood,
@@ -41,9 +43,33 @@ class MoodRepositoryImpl implements MoodRepository {
     return null;
   }
 
+  MoodEntryEntity _toEntity(MoodEntry m) => MoodEntryEntity(
+        id: m.id,
+        date: m.date,
+        mood: m.mood,
+        note: m.note,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deleted: m.deleted,
+      );
+
   @override
   Stream<List<MoodEntry>> watchAll() =>
       local.watchAll().map((list) => list.map(_toModel).toList());
+
+  @override
+  List<MoodEntry> getAllIncludingDeleted() =>
+      local.getAllIncludingDeleted().map(_toModel).toList();
+
+  @override
+  Future<JsonResponse> replaceAll(List<MoodEntry> items) async {
+    try {
+      local.replaceAll(items.map(_toEntity).toList());
+      return JsonResponse.success(message: 'Replaced ${items.length} items');
+    } catch (e) {
+      return JsonResponse.failure(message: '$e');
+    }
+  }
 
   @override
   Future<JsonResponse> saveForDay({

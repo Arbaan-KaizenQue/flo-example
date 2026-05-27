@@ -8,6 +8,8 @@ import '../models/weight_log.dart';
 /// [WeightRepository] — one [WeightLog] per date. `saveForDay` upserts.
 abstract class WeightRepository {
   Stream<List<WeightLog>> watchAll();
+  List<WeightLog> getAllIncludingDeleted();
+  Future<JsonResponse> replaceAll(List<WeightLog> items);
   Future<JsonResponse> saveForDay({
     required DateTime date,
     required double weightKg,
@@ -40,9 +42,32 @@ class WeightRepositoryImpl implements WeightRepository {
     return null;
   }
 
+  WeightLogEntity _toEntity(WeightLog m) => WeightLogEntity(
+        id: m.id,
+        date: m.date,
+        weightKg: m.weightKg,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        deleted: m.deleted,
+      );
+
   @override
   Stream<List<WeightLog>> watchAll() =>
       local.watchAll().map((list) => list.map(_toModel).toList());
+
+  @override
+  List<WeightLog> getAllIncludingDeleted() =>
+      local.getAllIncludingDeleted().map(_toModel).toList();
+
+  @override
+  Future<JsonResponse> replaceAll(List<WeightLog> items) async {
+    try {
+      local.replaceAll(items.map(_toEntity).toList());
+      return JsonResponse.success(message: 'Replaced ${items.length} items');
+    } catch (e) {
+      return JsonResponse.failure(message: '$e');
+    }
+  }
 
   @override
   Future<JsonResponse> saveForDay({
