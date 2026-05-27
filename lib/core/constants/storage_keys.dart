@@ -3,6 +3,7 @@
 class StorageKeys {
   StorageKeys._();
 
+  static const String welcomeSeen = 'welcome_seen';
   static const String acceptedTerms = 'accepted_terms';
   static const String onboardingComplete = 'onboarding_complete';
   static const String onboardingStep = 'onboarding_step';

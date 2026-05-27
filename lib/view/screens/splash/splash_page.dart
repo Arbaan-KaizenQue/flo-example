@@ -7,9 +7,10 @@ import '../../../bloc/sync/sync_bloc.dart';
 import '../../../core/route/routes.dart';
 
 /// [SplashPage] — reads [SettingsBloc.state] and routes the user:
-/// 1) `!acceptedTerms` → `/privacy`
-/// 2) `!onboardingComplete` → `/onboarding` (resumes from saved step)
-/// 3) else → `/dashboard`, and if Drive is enabled, fires a background sync.
+/// 1) `!welcomeSeen` → `/welcome` (first-launch greeting)
+/// 2) `!acceptedTerms` → `/privacy`
+/// 3) `!onboardingComplete` → `/onboarding` (resumes from saved step)
+/// 4) else → `/dashboard`, and if Drive is enabled, fires a background sync.
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -30,6 +31,10 @@ class _SplashPageState extends State<SplashPage> {
 
     final settings = context.read<SettingsBloc>().state;
 
+    if (!settings.welcomeSeen) {
+      context.goNamed(welcomeRoute);
+      return;
+    }
     if (!settings.acceptedTerms) {
       context.goNamed(privacyRoute);
       return;

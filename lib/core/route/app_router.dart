@@ -9,6 +9,7 @@ import '../../view/screens/profile/profile_page.dart';
 import '../../view/screens/settings/settings_page.dart';
 import '../../view/screens/shell/main_shell.dart';
 import '../../view/screens/splash/splash_page.dart';
+import '../../view/screens/welcome/welcome_page.dart';
 import 'routes.dart';
 
 /// [appRouter] — application-wide GoRouter config.
@@ -20,6 +21,11 @@ final GoRouter appRouter = GoRouter(
       name: splashRoute,
       path: '/',
       builder: (_, __) => const SplashPage(),
+    ),
+    GoRoute(
+      name: welcomeRoute,
+      path: '/welcome',
+      builder: (_, __) => const WelcomePage(),
     ),
     GoRoute(
       name: privacyRoute,

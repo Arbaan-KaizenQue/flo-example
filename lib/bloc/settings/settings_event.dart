@@ -11,6 +11,10 @@ class RefreshSettings extends SettingsEvent {
   const RefreshSettings();
 }
 
+class MarkWelcomeSeen extends SettingsEvent {
+  const MarkWelcomeSeen();
+}
+
 class AcceptTerms extends SettingsEvent {
   const AcceptTerms();
 }

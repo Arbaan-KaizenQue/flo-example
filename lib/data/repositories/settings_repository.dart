@@ -6,6 +6,7 @@ import '../models/pregnancy_context.dart';
 /// [SettingsRepository] — typed wrapper around SharedPreferences flags
 /// that gate routing, Drive opt-in, and pregnancy mode (Feature 20).
 abstract class SettingsRepository {
+  bool get welcomeSeen;
   bool get acceptedTerms;
   bool get driveEnabled;
   bool get onboardingComplete;
@@ -16,6 +17,7 @@ abstract class SettingsRepository {
   DateTime? get pregnancyLmp;
   PregnancyContext? get pregnancyContext;
 
+  Future<void> setWelcomeSeen(bool seen);
   Future<void> setAcceptedTerms(bool accepted);
   Future<void> setDriveEnabled(bool enabled);
   Future<void> setOnboardingComplete(bool done);
@@ -27,6 +29,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
   const SettingsRepositoryImpl({required this.prefs});
 
   final SharedPreferences prefs;
+
+  @override
+  bool get welcomeSeen =>
+      prefs.getBool(StorageKeys.welcomeSeen) ?? false;
 
   @override
   bool get acceptedTerms =>
@@ -63,6 +69,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
     if (lmp == null) return null;
     return PregnancyContext.fromLmp(lmp);
   }
+
+  @override
+  Future<void> setWelcomeSeen(bool seen) =>
+      prefs.setBool(StorageKeys.welcomeSeen, seen);
 
   @override
   Future<void> setAcceptedTerms(bool accepted) =>

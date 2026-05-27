@@ -22,6 +22,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     required this.driveRepository,
     required this.onboardingRepository,
   }) : super(SettingsState(
+          welcomeSeen: settingsRepository.welcomeSeen,
           acceptedTerms: settingsRepository.acceptedTerms,
           driveEnabled: settingsRepository.driveEnabled,
           onboardingComplete: settingsRepository.onboardingComplete,
@@ -30,6 +31,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           pregnancyLmp: settingsRepository.pregnancyLmp,
         )) {
     on<RefreshSettings>(_onRefresh);
+    on<MarkWelcomeSeen>(_onMarkWelcomeSeen);
     on<AcceptTerms>(_onAcceptTerms);
     on<ToggleDriveEnabled>(_onToggleDrive);
     on<SyncNowFromSettings>(_onSyncNow);
@@ -56,6 +58,12 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       lastSyncedAt: settingsRepository.lastSyncedAt,
       error: '',
     ));
+  }
+
+  FutureOr<void> _onMarkWelcomeSeen(
+      MarkWelcomeSeen event, Emitter<SettingsState> emit) async {
+    await settingsRepository.setWelcomeSeen(true);
+    emit(state.copyWith(welcomeSeen: true));
   }
 
   FutureOr<void> _onAcceptTerms(

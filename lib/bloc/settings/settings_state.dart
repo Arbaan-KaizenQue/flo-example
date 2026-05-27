@@ -5,6 +5,7 @@ class SettingsState extends Equatable {
     this.isLoading = false,
     this.error = '',
     this.message = '',
+    this.welcomeSeen = false,
     this.acceptedTerms = false,
     this.driveEnabled = false,
     this.onboardingComplete = false,
@@ -16,6 +17,7 @@ class SettingsState extends Equatable {
   final bool isLoading;
   final String error;
   final String message;
+  final bool welcomeSeen;
   final bool acceptedTerms;
   final bool driveEnabled;
   final bool onboardingComplete;
@@ -35,6 +37,7 @@ class SettingsState extends Equatable {
     bool? isLoading,
     String? error,
     String? message,
+    bool? welcomeSeen,
     bool? acceptedTerms,
     bool? driveEnabled,
     bool? onboardingComplete,
@@ -47,6 +50,7 @@ class SettingsState extends Equatable {
         isLoading: isLoading ?? this.isLoading,
         error: error ?? this.error,
         message: message ?? this.message,
+        welcomeSeen: welcomeSeen ?? this.welcomeSeen,
         acceptedTerms: acceptedTerms ?? this.acceptedTerms,
         driveEnabled: driveEnabled ?? this.driveEnabled,
         onboardingComplete: onboardingComplete ?? this.onboardingComplete,
@@ -62,6 +66,7 @@ class SettingsState extends Equatable {
         isLoading,
         error,
         message,
+        welcomeSeen,
         acceptedTerms,
         driveEnabled,
         onboardingComplete,

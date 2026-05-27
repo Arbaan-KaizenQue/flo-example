@@ -6,6 +6,7 @@
 // - Value: kebab-case string.
 
 const String splashRoute = 'splash';
+const String welcomeRoute = 'welcome';
 const String privacyRoute = 'privacy';
 const String onboardingRoute = 'onboarding';
 
